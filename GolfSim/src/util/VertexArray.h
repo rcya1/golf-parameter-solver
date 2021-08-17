@@ -6,4 +6,5 @@ public:
 	VertexArray();
 	void free();
 	void bind();
+	void unbind();
 };

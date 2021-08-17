@@ -12,3 +12,7 @@ void VertexArray::free() {
 void VertexArray::bind() {
 	glBindVertexArray(id);
 }
+
+void VertexArray::unbind() {
+	glBindVertexArray(0);
+}
