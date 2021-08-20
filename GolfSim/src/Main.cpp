@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -50,50 +51,59 @@ int main() {
 	std::cout << glGetString(GL_VERSION) << std::endl;
 
 	// create shader and set up texture mappings
-	Shader shader("src/shaders/BasicVertexShader.vert", "src/shaders/BasicFragmentShader.frag");
+	Shader shader("src/shaders/LightingVertexShader.vert", "src/shaders/LightingFragmentShader.frag");
 	shader.activate();
 
 	VertexArray cubeVertexArray;
 	cubeVertexArray.bind();
 
 	float vertices[] = {
-		// front
-		-0.5, -0.5,  0.5,
-		 0.5, -0.5,  0.5,
-		 0.5,  0.5,  0.5,
-		-0.5,  0.5,  0.5,
-		// back
-		-0.5, -0.5, -0.5,
-		 0.5, -0.5, -0.5,
-		 0.5,  0.5, -0.5,
-		-0.5,  0.5, -0.5
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+
+		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+
+		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+		 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 	};
 
-	VertexBuffer cubeVertexBuffer(24 * sizeof(float), vertices, 3 * sizeof(float), GL_STATIC_DRAW);
+	VertexBuffer cubeVertexBuffer(216 * sizeof(float), vertices, 6 * sizeof(float), GL_STATIC_DRAW);
 	cubeVertexBuffer.setVertexAttribute(0, 3, GL_FLOAT, 0); // position
-
-	unsigned int indices[] = {
-		// front
-		0, 1, 2,
-		2, 3, 0,
-		// right
-		1, 5, 6,
-		6, 2, 1,
-		// back
-		7, 6, 5,
-		5, 4, 7,
-		// left
-		4, 0, 3,
-		3, 7, 4,
-		// bottom
-		4, 5, 1,
-		1, 0, 4,
-		// top
-		3, 2, 6,
-		6, 7, 3
-	};
-
-	IndexBuffer cubeIndexBuffer(36 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+	cubeVertexBuffer.setVertexAttribute(1, 3, GL_FLOAT, 3 * sizeof(float)); // normals
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -110,6 +120,13 @@ int main() {
 		glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
+	glm::vec3 pointLightPositions[] = {
+		glm::vec3(0.7f,  0.2f,  2.0f),
+		glm::vec3(2.3f, -3.3f, -4.0f),
+		glm::vec3(-4.0f,  2.0f, -12.0f),
+		glm::vec3(0.0f,  0.0f, -3.0f)
+	};
+
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window)) {
 		float currentTime = glfwGetTime();
@@ -120,12 +137,33 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		shader.activate();
+		shader.setVec3f("objectColor", 1.0f, 0.5f, 0.31f);
+		shader.setFloat("shininess", 32.0f);
+		shader.setVec3f("lightColor", 1.0f, 1.0f, 1.0f);
+		shader.setVec3f("lightPos", 1.2f, 1.0f, 2.0f);
+		shader.setVec3f("viewPos", camera.getPos().x, camera.getPos().y, camera.getPos().z);
+
 		camera.calculateDirection();
 		shader.setMat4f("view", false, camera.getViewMatrix());
 		shader.setMat4f("projection", false, camera.getProjectionMatrix((float) windowWidth / windowHeight));
 
-		float brightness = (sin(currentTime) / 2.0f) + 0.5f;
-		shader.setFloat("brightness", brightness);
+		shader.setInt("numPointLights", 4);
+		for (int i = 0; i < 4; i++) {
+			std::string prefix = std::string("pointLights[") + std::to_string(i) + std::string("]");
+			shader.setVec3f((prefix + ".position").c_str(), pointLightPositions[i].x, pointLightPositions[i].y, pointLightPositions[i].z);
+			shader.setVec3f((prefix + ".ambient").c_str(), 0.05f, 0.05f, 0.05f);
+			shader.setVec3f((prefix + ".diffuse").c_str(), 0.8f, 0.8f, 0.8f);
+			shader.setVec3f((prefix + ".specular").c_str(), 1.0f, 1.0f, 1.0f);
+			shader.setFloat((prefix + ".constant").c_str(), 1.0f);
+			shader.setFloat((prefix + ".linear").c_str(), 0.09);
+			shader.setFloat((prefix + ".quadratic").c_str(), 0.032);
+		}
+
+		shader.setInt("numDirLights", 1);
+		shader.setVec3f("dirLights[0].direction", -0.2f, -1.0f, -0.3f);
+		shader.setVec3f("dirLights[0].ambient", 0.05f, 0.05f, 0.05f);
+		shader.setVec3f("dirLights[0].diffuse", 0.4f, 0.4f, 0.4f);
+		shader.setVec3f("dirLights[0].specular", 0.5f, 0.5f, 0.5f);
 
 		cubeVertexArray.bind();
 
@@ -138,7 +176,7 @@ int main() {
 
 			shader.setVec3f("vertexColor", i * 0.1, 0.5, 0.5);
 
-			glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
 		/* Swap front and back buffers */
@@ -151,7 +189,6 @@ int main() {
 	shader.free();
 	cubeVertexArray.free();
 	cubeVertexBuffer.free();
-	cubeIndexBuffer.free();
 
 	glfwTerminate();
 

@@ -19,5 +19,7 @@
   <ItemGroup>
     <None Include="src\shaders\BasicFragmentShader.frag" />
     <None Include="src\shaders\BasicVertexShader.vert" />
+    <None Include="src\shaders\LightingFragmentShader.frag" />
+    <None Include="src\shaders\LightingVertexShader.vert" />
   </ItemGroup>
 </Project>
