@@ -15,6 +15,7 @@
     <ClInclude Include="src\util\Shader.h" />
     <ClInclude Include="src\util\VertexArray.h" />
     <ClInclude Include="src\util\VertexBuffer.h" />
+    <ClInclude Include="src\sphere\SphereModel.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\shaders\BasicFragmentShader.frag" />

@@ -422,3 +422,5 @@ FodyWeavers.xsd
 
 */lib/*
 */includes/*
+
+.vscode/*

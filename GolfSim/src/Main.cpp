@@ -10,6 +10,7 @@
 #include "util/IndexBuffer.h"
 #include "util/VertexBuffer.h"
 #include "util/VertexArray.h"
+#include "sphere/SphereModel.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xPos, double yPos);
@@ -42,8 +43,7 @@ int main() {
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetCursorPosCallback(window, mouse_callback);
 
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
@@ -53,6 +53,8 @@ int main() {
 	// create shader and set up texture mappings
 	Shader shader("src/shaders/LightingVertexShader.vert", "src/shaders/LightingFragmentShader.frag");
 	shader.activate();
+
+	VertexArray* sphereVertexArray = sphere::generateSphereModel(0.5);
 
 	VertexArray cubeVertexArray;
 	cubeVertexArray.bind();
@@ -165,18 +167,20 @@ int main() {
 		shader.setVec3f("dirLights[0].diffuse", 0.4f, 0.4f, 0.4f);
 		shader.setVec3f("dirLights[0].specular", 0.5f, 0.5f, 0.5f);
 
-		cubeVertexArray.bind();
+		// cubeVertexArray.bind();
+		sphereVertexArray->bind();
 
 		for (int i = 0; i < 10; i++) {
 			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::translate(model, cubePositions[i]);
-			float angle = 30.0f * i;
-			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0 - i, 2 * i, i * i));
+			// float angle = 30.0f * i;
+			// model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0 - i, 2 * i, i * i));
 			shader.setMat4f("model", false, glm::value_ptr(model));
 
 			shader.setVec3f("vertexColor", i * 0.1, 0.5, 0.5);
 
-			glDrawArrays(GL_TRIANGLES, 0, 36);
+			glDrawElements(GL_TRIANGLES, sphere::indexData.size(), GL_UNSIGNED_INT, (void*) 0);
+			// glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
 		/* Swap front and back buffers */
