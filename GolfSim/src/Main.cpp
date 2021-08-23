@@ -50,16 +50,14 @@ int main() {
 
 	std::cout << glGetString(GL_VERSION) << std::endl;
 
-	// create shader and set up texture mappings
-	Shader shader("src/shaders/LightingVertexShader.vert", "src/shaders/LightingFragmentShader.frag");
-	shader.activate();
+	// create shaders
+	Shader sphereShader("src/shaders/LightingVertexShader.vert", "src/shaders/LightingFragmentShader.frag");
+	Shader lightShader("src/shaders/BasicVertexShader.vert", "src/shaders/BasicFragmentShader.frag");
 
 	VertexArray* sphereVertexArray = sphere::generateSphereModel(0.5);
 
-	VertexArray cubeVertexArray;
-	cubeVertexArray.bind();
-
-	float vertices[] = {
+	float cubeVertices[] = {
+		// positions          // normals         
 		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 		 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
@@ -67,12 +65,12 @@ int main() {
 		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 
-		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-		 0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f, 
+		 0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f, 
+		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f, 
+		 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f, 
+		-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f, 
+		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f, 
 
 		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 		-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
@@ -100,16 +98,19 @@ int main() {
 		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
 		 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
 		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
 	};
 
-	VertexBuffer cubeVertexBuffer(216 * sizeof(float), vertices, 6 * sizeof(float), GL_STATIC_DRAW);
+	VertexArray cubeVertexArray;
+	cubeVertexArray.bind();
+	VertexBuffer cubeVertexBuffer(216 * sizeof(float), cubeVertices, 6 * sizeof(float), GL_STATIC_DRAW);
 	cubeVertexBuffer.setVertexAttribute(0, 3, GL_FLOAT, 0); // position
-	cubeVertexBuffer.setVertexAttribute(1, 3, GL_FLOAT, 3 * sizeof(float)); // normals
+	cubeVertexBuffer.setVertexAttribute(1, 3, GL_FLOAT, 3 * sizeof(float)); // normal
+	cubeVertexArray.unbind();
 
 	glEnable(GL_DEPTH_TEST);
 
-	glm::vec3 cubePositions[] = {
+	glm::vec3 spherePositions[] = {
 		glm::vec3(0.0f,  0.0f,  0.0f),
 		glm::vec3(2.0f,  5.0f, -15.0f),
 		glm::vec3(-1.5f, -2.2f, -2.5f),
@@ -123,10 +124,14 @@ int main() {
 	};
 
 	glm::vec3 pointLightPositions[] = {
-		glm::vec3(0.7f,  0.2f,  2.0f),
-		glm::vec3(2.3f, -3.3f, -4.0f),
-		glm::vec3(-4.0f,  2.0f, -12.0f),
-		glm::vec3(0.0f,  0.0f, -3.0f)
+		glm::vec3( 25.0f,  25.0f, -25.0f),
+		glm::vec3( 25.0f,  25.0f,  25.0f),
+		glm::vec3(-25.0f,  25.0f, -25.0f),
+		glm::vec3(-25.0f,  25.0f,  25.0f),
+		glm::vec3( 25.0f, -25.0f, -25.0f),
+		glm::vec3( 25.0f, -25.0f,  25.0f),
+		glm::vec3(-25.0f, -25.0f, -25.0f),
+		glm::vec3(-25.0f, -25.0f,  25.0f)
 	};
 
 	/* Loop until the user closes the window */
@@ -138,49 +143,59 @@ int main() {
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		shader.activate();
-		shader.setVec3f("objectColor", 1.0f, 0.5f, 0.31f);
-		shader.setFloat("shininess", 32.0f);
-		shader.setVec3f("lightColor", 1.0f, 1.0f, 1.0f);
-		shader.setVec3f("lightPos", 1.2f, 1.0f, 2.0f);
-		shader.setVec3f("viewPos", camera.getPos().x, camera.getPos().y, camera.getPos().z);
+		sphereShader.activate();
+		sphereShader.setVec3f("material.ambient", 0.0f, 0.0f, 0.0f);
+		sphereShader.setVec3f("material.diffuse", 0.1f, 0.35f, 0.1f);
+		sphereShader.setVec3f("material.specular", 0.25f, 0.25f, 0.25f);
+		sphereShader.setFloat("material.shininess", 2);
+		sphereShader.setVec3f("viewPos", camera.getPos().x, camera.getPos().y, camera.getPos().z);
 
 		camera.calculateDirection();
-		shader.setMat4f("view", false, camera.getViewMatrix());
-		shader.setMat4f("projection", false, camera.getProjectionMatrix((float) windowWidth / windowHeight));
+		sphereShader.setMat4f("view", false, camera.getViewMatrix());
+		sphereShader.setMat4f("projection", false, camera.getProjectionMatrix((float) windowWidth / windowHeight));
 
-		shader.setInt("numPointLights", 4);
-		for (int i = 0; i < 4; i++) {
+		sphereShader.setInt("numPointLights", 8);
+		for (int i = 0; i < 8; i++) {
 			std::string prefix = std::string("pointLights[") + std::to_string(i) + std::string("]");
-			shader.setVec3f((prefix + ".position").c_str(), pointLightPositions[i].x, pointLightPositions[i].y, pointLightPositions[i].z);
-			shader.setVec3f((prefix + ".ambient").c_str(), 0.05f, 0.05f, 0.05f);
-			shader.setVec3f((prefix + ".diffuse").c_str(), 0.8f, 0.8f, 0.8f);
-			shader.setVec3f((prefix + ".specular").c_str(), 1.0f, 1.0f, 1.0f);
-			shader.setFloat((prefix + ".constant").c_str(), 1.0f);
-			shader.setFloat((prefix + ".linear").c_str(), 0.09);
-			shader.setFloat((prefix + ".quadratic").c_str(), 0.032);
+			sphereShader.setVec3f((prefix + ".position").c_str(), pointLightPositions[i].x, pointLightPositions[i].y, pointLightPositions[i].z);
+			sphereShader.setVec3f((prefix + ".ambient").c_str(), 0.05f, 0.05f, 0.05f);
+			sphereShader.setVec3f((prefix + ".diffuse").c_str(), 1.0f, 1.0f, 1.0f);
+			sphereShader.setVec3f((prefix + ".specular").c_str(), 1.0f, 1.0f, 1.0f);
+			sphereShader.setFloat((prefix + ".constant").c_str(), 1.0f);
+			sphereShader.setFloat((prefix + ".linear").c_str(), 0.022);
+			sphereShader.setFloat((prefix + ".quadratic").c_str(), 0.0019);
 		}
 
-		shader.setInt("numDirLights", 1);
-		shader.setVec3f("dirLights[0].direction", -0.2f, -1.0f, -0.3f);
-		shader.setVec3f("dirLights[0].ambient", 0.05f, 0.05f, 0.05f);
-		shader.setVec3f("dirLights[0].diffuse", 0.4f, 0.4f, 0.4f);
-		shader.setVec3f("dirLights[0].specular", 0.5f, 0.5f, 0.5f);
+		sphereShader.setInt("numDirLights", 1);
+		sphereShader.setVec3f("dirLights[0].direction", 0.0f, -1.0f, 0.0f);
+		sphereShader.setVec3f("dirLights[0].ambient", 1.0f, 1.0f, 1.0f);
+		sphereShader.setVec3f("dirLights[0].diffuse", 1.0f, 1.0f, 1.0f);
+		sphereShader.setVec3f("dirLights[0].specular", 1.0f, 1.0f, 1.0f);
 
-		// cubeVertexArray.bind();
 		sphereVertexArray->bind();
 
 		for (int i = 0; i < 10; i++) {
 			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, cubePositions[i]);
-			// float angle = 30.0f * i;
-			// model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0 - i, 2 * i, i * i));
-			shader.setMat4f("model", false, glm::value_ptr(model));
-
-			shader.setVec3f("vertexColor", i * 0.1, 0.5, 0.5);
+			model = glm::translate(model, spherePositions[i]);
+			sphereShader.setMat4f("model", false, glm::value_ptr(model));
 
 			glDrawElements(GL_TRIANGLES, sphere::indexData.size(), GL_UNSIGNED_INT, (void*) 0);
-			// glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
+
+		lightShader.activate();
+		lightShader.setMat4f("view", false, camera.getViewMatrix());
+		lightShader.setMat4f("projection", false, camera.getProjectionMatrix((float) windowWidth / windowHeight));
+		lightShader.setVec3f("vertexColor", 1.0f, 1.0f, 1.0f);
+
+		cubeVertexArray.bind();
+
+		for (int i = 0; i < 8; i++) {
+			glm::mat4 lightModel = glm::mat4(1.0f);
+			lightModel = glm::translate(lightModel, pointLightPositions[i]);
+			lightModel = glm::scale(lightModel, glm::vec3(0.4f));
+			lightShader.setMat4f("model", false, glm::value_ptr(lightModel));
+
+			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
 		/* Swap front and back buffers */
@@ -190,9 +205,12 @@ int main() {
 		glfwPollEvents();
 	}
 
-	shader.free();
-	cubeVertexArray.free();
+	sphereShader.free();
+	sphere::freeSphereModel();
+
+	lightShader.free();
 	cubeVertexBuffer.free();
+	cubeVertexArray.free();
 
 	glfwTerminate();
 
