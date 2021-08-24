@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\sphere\Sphere.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\util\Camera.cpp" />
@@ -26,20 +27,26 @@
     <ClCompile Include="src\util\Shader.cpp" />
     <ClCompile Include="src\util\VertexArray.cpp" />
     <ClCompile Include="src\util\VertexBuffer.cpp" />
+    <ClCompile Include="src\terrain\Terrain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\sphere\Sphere.h" />
     <ClInclude Include="src\sphere\SphereModel.h" />
     <ClInclude Include="src\util\Camera.h" />
     <ClInclude Include="src\util\IndexBuffer.h" />
     <ClInclude Include="src\util\Shader.h" />
     <ClInclude Include="src\util\VertexArray.h" />
     <ClInclude Include="src\util\VertexBuffer.h" />
+    <ClInclude Include="src\terrain\Terrain.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\shaders\BasicFragmentShader.frag" />
     <None Include="src\shaders\BasicVertexShader.vert" />
     <None Include="src\shaders\LightingFragmentShader.frag" />
     <None Include="src\shaders\LightingVertexShader.vert" />
+    <None Include="src\shaders\visualize-normals\VisualizeNormalsFragmentShader.frag" />
+    <None Include="src\shaders\visualize-normals\VisualizeNormalsGeometryShader.geom" />
+    <None Include="src\shaders\visualize-normals\VisualizeNormalsVertexShader.vert" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

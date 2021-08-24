@@ -5,7 +5,7 @@
 #include <iostream>
 #include <string>
 
-Shader::Shader(const char* vertexPath, const char* fragmentPath) {
+Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath) {
 	std::string vertexCode;
 	std::string fragmentCode;
 
@@ -58,9 +58,39 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
 		std::cout << "Compiled fragment shader from " + std::string(fragmentPath) + "!" << std::endl;
 	}
 
+	unsigned int geometryShader = -1;
+	if (geometryPath != nullptr) {
+		std::string geometryCode;
+		std::ifstream geometryStream(geometryPath);
+
+		while (std::getline(geometryStream, currLine)) {
+			geometryCode += currLine;
+			geometryCode += '\n';
+		}
+		geometryCode += '\0';
+		geometryStream.close();
+
+		const char* geomCodeC = geometryCode.c_str();
+
+		geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+		glShaderSource(geometryShader, 1, &geomCodeC, NULL);
+		glCompileShader(geometryShader);
+		int geometryShaderSuccess;
+		char geometryShaderInfoLog[512];
+		glGetShaderiv(geometryShader, GL_COMPILE_STATUS, &geometryShaderSuccess);
+		if (!geometryShaderSuccess) {
+			glGetShaderInfoLog(geometryShader, 512, NULL, geometryShaderInfoLog);
+			std::cout << "Geometry shader from " + std::string(geometryPath) + " failed to compile!\n" << geometryShaderInfoLog << std::endl;
+		}
+		else {
+			std::cout << "Compiled geometry shader from " + std::string(geometryPath) + "!" << std::endl;
+		}
+	}
+
 	this->id = glCreateProgram();
 	glAttachShader(this->id, vertexShader);
 	glAttachShader(this->id, fragmentShader);
+	if (geometryShader != -1) glAttachShader(this->id, geometryShader);
 	glLinkProgram(this->id);
 	int shaderProgramSuccess;
 	char shaderProgramInfoLog[512];
@@ -75,6 +105,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
 
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
+	glDeleteShader(geometryShader);
 }
 
 void Shader::free() {

@@ -11,6 +11,7 @@
 #include "util/VertexBuffer.h"
 #include "util/VertexArray.h"
 #include "sphere/SphereModel.h"
+#include "terrain/Terrain.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xPos, double yPos);
@@ -50,9 +51,14 @@ int main() {
 
 	std::cout << glGetString(GL_VERSION) << std::endl;
 
+	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 	// create shaders
 	Shader sphereShader("src/shaders/LightingVertexShader.vert", "src/shaders/LightingFragmentShader.frag");
 	Shader lightShader("src/shaders/BasicVertexShader.vert", "src/shaders/BasicFragmentShader.frag");
+	Shader visualizeNormalsShader("src/shaders/visualize-normals/VisualizeNormalsVertexShader.vert",
+		"src/shaders/visualize-normals/VisualizeNormalsFragmentShader.frag",
+		"src/shaders/visualize-normals/VisualizeNormalsGeometryShader.geom");
 
 	VertexArray* sphereVertexArray = sphere::generateSphereModel(0.5);
 
@@ -107,6 +113,8 @@ int main() {
 	cubeVertexBuffer.setVertexAttribute(0, 3, GL_FLOAT, 0); // position
 	cubeVertexBuffer.setVertexAttribute(1, 3, GL_FLOAT, 3 * sizeof(float)); // normal
 	cubeVertexArray.unbind();
+
+	Terrain terrain(10, 10);
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -182,9 +190,32 @@ int main() {
 			glDrawElements(GL_TRIANGLES, sphere::indexData.size(), GL_UNSIGNED_INT, (void*) 0);
 		}
 
+		glm::mat4 terrainModel = glm::mat4(1.0f);
+		terrainModel = glm::translate(terrainModel, glm::vec3(0, 0, 0));
+		sphereShader.setMat4f("model", false, glm::value_ptr(terrainModel));
+		terrain.render();
+
+		// Visualizing Normals Code
+		/*
+		visualizeNormalsShader.activate();
+		visualizeNormalsShader.setMat4f("projection", false, camera.getProjectionMatrix((float)windowWidth / windowHeight));
+		visualizeNormalsShader.setMat4f("view", false, camera.getViewMatrix());
+		visualizeNormalsShader.setMat4f("model", false, glm::value_ptr(terrainModel));
+		terrain.render();
+
+		sphereVertexArray->bind();
+		for (int i = 0; i < 10; i++) {
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, spherePositions[i]);
+			visualizeNormalsShader.setMat4f("model", false, glm::value_ptr(model));
+
+			glDrawElements(GL_TRIANGLES, sphere::indexData.size(), GL_UNSIGNED_INT, (void*)0);
+		}
+		*/
+
 		lightShader.activate();
 		lightShader.setMat4f("view", false, camera.getViewMatrix());
-		lightShader.setMat4f("projection", false, camera.getProjectionMatrix((float) windowWidth / windowHeight));
+		lightShader.setMat4f("projection", false, camera.getProjectionMatrix((float)windowWidth / windowHeight));
 		lightShader.setVec3f("vertexColor", 1.0f, 1.0f, 1.0f);
 
 		cubeVertexArray.bind();
