@@ -7,6 +7,7 @@
 #include "../util/VertexBuffer.h"
 #include "../util/VertexArray.h"
 #include "../util/IndexBuffer.h"
+#include "./PerlinNoise.h"
 
 #include <iostream>
 
@@ -54,18 +55,22 @@ std::vector<float> Terrain::getNormal(int i1, int i2, int i3) {
 	return std::vector<float>{c.x, c.y, c.z};
 }
 
-Terrain::Terrain(int numHorizontal, int numVertical) : numHorizontal(numHorizontal), numVertical(numVertical) {
+Terrain::Terrain(int numHorizontal, int numVertical, float noiseFreq, float noiseAmp) 
+	: numHorizontal(numHorizontal), numVertical(numVertical) {
 	heightMap = std::vector<float>(numHorizontal * numVertical);
 
 	const float hSpacing = MAP_WIDTH / numVertical;
 	const float vSpacing = MAP_HEIGHT / numHorizontal;
+
+	noise::initNoise();
 	
 	for (int i = 0; i < numHorizontal; i++) {
 		for (int j = 0; j < numVertical; j++) {
 			float x = i * hSpacing;
 			float z = j * vSpacing;
 
-			float height = ((x-MAP_WIDTH / 2) * (x- MAP_WIDTH / 2) + (z-MAP_HEIGHT / 2) * (z-MAP_HEIGHT / 2)) / 10.0;
+			//float height = ((x-MAP_WIDTH / 2) * (x- MAP_WIDTH / 2) + (z-MAP_HEIGHT / 2) * (z-MAP_HEIGHT / 2)) / 10.0;
+			float height = noise::noise(x / noiseFreq, -10, z / noiseFreq) * noiseAmp;
 
 			heightMap[i * numVertical + j] = height;
 		}

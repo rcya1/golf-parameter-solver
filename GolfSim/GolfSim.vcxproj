@@ -32,6 +32,7 @@
   <ItemGroup>
     <ClInclude Include="src\sphere\Sphere.h" />
     <ClInclude Include="src\sphere\SphereModel.h" />
+    <ClInclude Include="src\terrain\PerlinNoise.h" />
     <ClInclude Include="src\util\Camera.h" />
     <ClInclude Include="src\util\IndexBuffer.h" />
     <ClInclude Include="src\util\Shader.h" />

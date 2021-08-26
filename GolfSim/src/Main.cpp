@@ -23,6 +23,11 @@ Camera camera = Camera(glm::vec3(0, 0, 3.0), 3, 50, 5, -90, 0, 45);
 float lastTime = 0.0f;
 float deltaTime = 0.0f;
 
+float terrainNoiseFreq = 10.0f;
+float terrainNoiseAmp = 5.0f;
+
+Terrain* terrain;
+
 int main() {
 	GLFWwindow* window;
 
@@ -114,7 +119,7 @@ int main() {
 	cubeVertexBuffer.setVertexAttribute(1, 3, GL_FLOAT, 3 * sizeof(float)); // normal
 	cubeVertexArray.unbind();
 
-	Terrain terrain(10, 10);
+	terrain = new Terrain(10, 10, terrainNoiseFreq, terrainNoiseAmp);
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -193,15 +198,15 @@ int main() {
 		glm::mat4 terrainModel = glm::mat4(1.0f);
 		terrainModel = glm::translate(terrainModel, glm::vec3(0, 0, 0));
 		sphereShader.setMat4f("model", false, glm::value_ptr(terrainModel));
-		terrain.render();
+		terrain->render();
 
 		// Visualizing Normals Code
-		/*
+		
 		visualizeNormalsShader.activate();
 		visualizeNormalsShader.setMat4f("projection", false, camera.getProjectionMatrix((float)windowWidth / windowHeight));
 		visualizeNormalsShader.setMat4f("view", false, camera.getViewMatrix());
 		visualizeNormalsShader.setMat4f("model", false, glm::value_ptr(terrainModel));
-		terrain.render();
+		terrain->render();
 
 		sphereVertexArray->bind();
 		for (int i = 0; i < 10; i++) {
@@ -211,7 +216,6 @@ int main() {
 
 			glDrawElements(GL_TRIANGLES, sphere::indexData.size(), GL_UNSIGNED_INT, (void*)0);
 		}
-		*/
 
 		lightShader.activate();
 		lightShader.setMat4f("view", false, camera.getViewMatrix());
@@ -243,6 +247,8 @@ int main() {
 	cubeVertexBuffer.free();
 	cubeVertexArray.free();
 
+	delete terrain;
+
 	glfwTerminate();
 
 	return 0;
@@ -254,12 +260,19 @@ void process_inputs(GLFWwindow* window) {
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-		camera.zoomIn(deltaTime);
+		// camera.zoomIn(deltaTime);
+		terrainNoiseFreq += 1.0 * deltaTime;
+		std::cout << terrainNoiseFreq << std::endl;
 	}
 	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-		camera.zoomOut(deltaTime);
+		// camera.zoomOut(deltaTime);
+		terrainNoiseFreq -= 1.0 * deltaTime;
+		std::cout << terrainNoiseFreq << std::endl;
 	}
-
+	if (glfwGetKey(window, GLFW_KEY_ENTER)) {
+		delete terrain;
+		terrain = new Terrain(10, 10, terrainNoiseFreq, terrainNoiseAmp);
+	}
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 		camera.moveForward(deltaTime);
 	}

@@ -21,7 +21,7 @@ private:
 	std::vector<float> getNormal(int i1, int i2, int i3);
 
 public:
-	Terrain(int numHorizontal, int numVertical);
+	Terrain(int numHorizontal, int numVertical, float noiseFreq, float noiseAmp);
 	~Terrain();
 	void render();
 	void debug();
