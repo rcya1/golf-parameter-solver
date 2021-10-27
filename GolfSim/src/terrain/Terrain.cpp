@@ -1,8 +1,11 @@
+#define _CRT_SECURE_NO_WARNINGS // necessary to get the react physics 3d library to compile
+
 #include "Terrain.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <reactphysics3d/reactphysics3d.h> 
 #include <vector>
 #include "../util/VertexBuffer.h"
 #include "../util/VertexArray.h"
@@ -11,17 +14,14 @@
 
 #include <iostream>
 
-#define MAP_WIDTH 10.0f
-#define MAP_HEIGHT 10.0f
-
 std::pair<float, float> Terrain::getXZ(int index) {
-	int i = index / numVertical;
-	int j = index % numVertical;
+	int j = index / (numCols + 1);
+	int i = index % (numCols + 1);
 
-	const float hSpacing = MAP_WIDTH / numVertical;
-	const float vSpacing = MAP_HEIGHT / numHorizontal;
+	const float hSpacing = this->mapWidth / numCols;
+	const float vSpacing = this->mapHeight / numRows;
 
-	return std::make_pair(i * hSpacing, j * vSpacing);
+	return std::make_pair(i * hSpacing - this->mapWidth / 2, j * vSpacing - this->mapHeight / 2);
 }
 
 void Terrain::addVertex(int index, std::vector<float> &norm) {
@@ -55,33 +55,37 @@ std::vector<float> Terrain::getNormal(int i1, int i2, int i3) {
 	return std::vector<float>{c.x, c.y, c.z};
 }
 
-Terrain::Terrain(int numHorizontal, int numVertical, float noiseFreq, float noiseAmp) 
-	: numHorizontal(numHorizontal), numVertical(numVertical) {
-	heightMap = std::vector<float>(numHorizontal * numVertical);
+Terrain::Terrain(reactphysics3d::PhysicsWorld* world, reactphysics3d::PhysicsCommon* physicsCommon, 
+		int numRows, int numCols, float mapWidth, float mapHeight, float noiseFreq, float noiseAmp)
+	: numRows(numRows), numCols(numCols), mapWidth(mapWidth), mapHeight(mapHeight) {
 
-	const float hSpacing = MAP_WIDTH / numVertical;
-	const float vSpacing = MAP_HEIGHT / numHorizontal;
+	heightMap = std::vector<float>((numRows + 1) * (numCols + 1));
+
+	const float hSpacing = this->mapWidth / numCols;
+	const float vSpacing = this->mapHeight / numRows;
 
 	noise::initNoise();
 	
-	for (int i = 0; i < numHorizontal; i++) {
-		for (int j = 0; j < numVertical; j++) {
-			float x = i * hSpacing;
-			float z = j * vSpacing;
+	for (int j = 0; j <= numCols; j++) {
+		for (int i = 0; i <= numRows; i++) {
+			float x = i * hSpacing - this->mapWidth / 2;
+			float z = j * vSpacing - this->mapHeight / 2;
 
-			//float height = ((x-MAP_WIDTH / 2) * (x- MAP_WIDTH / 2) + (z-MAP_HEIGHT / 2) * (z-MAP_HEIGHT / 2)) / 10.0;
-			float height = noise::noise(x / noiseFreq, -10, z / noiseFreq) * noiseAmp;
+			//float height = noiseAmp;
+			//float height = (x * x + z * z) / 10.0;
+			float height = noise::noise(x / noiseFreq, -5, z / noiseFreq) * noiseAmp;
 
-			heightMap[i * numVertical + j] = height;
+			heightMap[j * (numCols + 1) + i] = height;
 		}
 	}
 
-	for (int i = 0; i < numHorizontal - 1; i++) {
-		for (int j = 0; j < numVertical - 1; j++) {
-			int topLeft = i * numVertical + j;
-			int topRight = (i + 1) * numVertical + j;
-			int botLeft = i * numVertical + j + 1;
-			int botRight = (i + 1) * numVertical + j + 1;
+	for (int j = 0; j < numCols; j++) {
+		for (int i = 0; i < numRows; i++) {
+
+			int topLeft = j * (numCols + 1) + i;
+			int topRight = (j + 1) * (numCols + 1) + i;
+			int botLeft = j * (numCols + 1) + i + 1;
+			int botRight = (j + 1) * (numCols + 1)+ i + 1;
 
 			std::vector<float> n1 = getNormal(topLeft, topRight, botLeft);
 			addVertex(topLeft , n1);
@@ -103,12 +107,32 @@ Terrain::Terrain(int numHorizontal, int numVertical, float noiseFreq, float nois
 	vertexBuffer->setVertexAttribute(1, 3, GL_FLOAT, 3 * sizeof(float));
 
 	vertexArray->unbind();
+
+	reactphysics3d::Vector3 position(0, 0, 0);
+	reactphysics3d::Quaternion orientation = reactphysics3d::Quaternion::identity();
+	reactphysics3d::Transform transform(position, orientation);
+
+	this->rigidBody = world->createRigidBody(transform);
+	this->rigidBody->setType(reactphysics3d::BodyType::STATIC);
+	
+	reactphysics3d::HeightFieldShape* heightFieldShape = physicsCommon->createHeightFieldShape(
+		numRows + 1, numCols + 1, -noiseAmp, noiseAmp, heightMap.data(), 
+		reactphysics3d::HeightFieldShape::HeightDataType::HEIGHT_FLOAT_TYPE);
+	reactphysics3d::Transform shapeTransform = reactphysics3d::Transform::identity();
+
+	this->collider = this->rigidBody->addCollider(heightFieldShape, shapeTransform);
+
+	/*reactphysics3d::Vector3 a;
+	reactphysics3d::Vector3 b;
+	heightFieldShape->getLocalBounds(a, b);
+	std::cout << a.x << " : " << a.y << " : " << a.z << std::endl;
+	std::cout << b.x << " : " << b.y << " : " << b.z << std::endl;*/
 }
 
 void Terrain::render() {
 	vertexArray->bind();
 
-	glDrawArrays(GL_TRIANGLES, 0, 2 * 3 * (numHorizontal - 1) * (numVertical - 1));
+	glDrawArrays(GL_TRIANGLES, 0, 2 * 3 * numRows * numCols);
 }
 
 void Terrain::debug() {
@@ -120,6 +144,10 @@ void Terrain::debug() {
 	}
 
 	std::cout << std::endl;
+}
+
+void Terrain::destroy(reactphysics3d::PhysicsWorld* world) {
+	world->destroyRigidBody(this->rigidBody);
 }
 
 Terrain::~Terrain() {

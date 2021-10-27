@@ -24,7 +24,6 @@ namespace sphere {
     std::vector<float> vertexData;
     std::vector<unsigned int> indexData;
 
-    // returns the VAO ID
     // Credit to http://www.songho.ca/opengl/gl_sphere.html
     VertexArray* generateSphereModel(float radius) {
         vertexData.clear();

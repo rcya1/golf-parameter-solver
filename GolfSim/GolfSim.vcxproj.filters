@@ -8,8 +8,8 @@
     <ClCompile Include="src\util\VertexBuffer.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\Main.cpp" />
-    <ClCompile Include="src\sphere\Sphere.cpp" />
     <ClCompile Include="src\terrain\Terrain.cpp" />
+    <ClCompile Include="src\sphere\Sphere.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\util\Camera.h" />
@@ -18,9 +18,9 @@
     <ClInclude Include="src\util\VertexArray.h" />
     <ClInclude Include="src\util\VertexBuffer.h" />
     <ClInclude Include="src\sphere\SphereModel.h" />
-    <ClInclude Include="src\sphere\Sphere.h" />
     <ClInclude Include="src\terrain\Terrain.h" />
     <ClInclude Include="src\terrain\PerlinNoise.h" />
+    <ClInclude Include="src\sphere\Sphere.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\shaders\BasicFragmentShader.frag" />
