@@ -1,12 +1,12 @@
-# Golf Simulator
+# OpenGL-Core
+Work-in-progress OpenGL library that aims to provide a powerful sandbox for you to learn or experiment with OpenGL, and graphics programming in general.
 
-## TODO List
-- Get spheres to not hit each other
-- Get spheres to not have physics immediately applied to them
-- Get spheres to all start in the same position
-- Set initial velocity of spheres
-- Adjust parameters of spheres so they seem to act like golf balls
-- Scale up the size of the terrain / scale down the size of the spheres
-- Fix the texturing of the spheres
-- Make a lot more spheres
-- Add goals
+## Usage
+
+Currently only "officially" supports Windows - Mac and Linux support is coming soon.
+
+```
+git clone --recursive https://github.com/TheCherno/OpenGL
+```
+
+Run `scripts/Win-Premake.bat` and open `OpenGL-Sandbox.sln` in Visual Studio 2019. `OpenGL-Sandbox/src/SandboxLayer.cpp` contains the example OpenGL code that's running.
