@@ -20,7 +20,9 @@ project "Golf-Sim"
 		"../OpenGL-Core/vendor",
 		"../OpenGL-Core/%{IncludeDir.glm}",
 		"../OpenGL-Core/%{IncludeDir.Glad}",
-		"../OpenGL-Core/%{IncludeDir.ImGui}"
+		"../OpenGL-Core/%{IncludeDir.ImGui}",
+		"../OpenGL-Core/%{IncludeDir.GLFW}",
+		"./src"
 	}
 
 	links
