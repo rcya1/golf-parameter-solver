@@ -13,6 +13,11 @@ project "Golf-Sim"
 		"src/**.cpp"
 	}
 
+	defines
+	{
+		"_CRT_SECURE_NO_WARNINGS"
+	}
+
 	includedirs
 	{
 		"../OpenGL-Core/vendor/spdlog/include",
@@ -22,12 +27,14 @@ project "Golf-Sim"
 		"../OpenGL-Core/%{IncludeDir.Glad}",
 		"../OpenGL-Core/%{IncludeDir.ImGui}",
 		"../OpenGL-Core/%{IncludeDir.GLFW}",
-		"./src"
+		"./src",
+		"./vendor/reactphysics3d/include"
 	}
 
 	links
 	{
-		"OpenGL-Core"
+		"OpenGL-Core",
+		"reactphysics3d.lib"
 	}
 
 	filter "system:windows"
@@ -43,7 +50,18 @@ project "Golf-Sim"
 		runtime "Debug"
 		symbols "on"
 
+		libdirs 
+		{
+			"./vendor/reactphysics3d/debug"
+		}
+
+
 	filter "configurations:Release"
 		defines "GLCORE_RELEASE"
 		runtime "Release"
         optimize "on"
+
+		libdirs 
+		{
+			"./vendor/reactphysics3d/release"
+		}

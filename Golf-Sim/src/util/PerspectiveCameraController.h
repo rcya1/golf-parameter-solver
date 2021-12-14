@@ -1,34 +1,35 @@
 #pragma once
 
-#include "PerspectiveCamera.h"
-
 #include <GLCore.h>
 
-class PerspectiveCameraController
-{
-public:
-	PerspectiveCameraController(glm::vec3& cameraPos, float yaw, float pitch, float fov, float aspectRatio, 
-		                          float moveSpeed, float zoomSpeed, float panSensitivity);
+#include "PerspectiveCamera.h"
 
-	void update(GLCore::Timestep ts);
-	void OnEvent(GLCore::Event& e);
+namespace opengl {
+class PerspectiveCameraController {
+ public:
+  PerspectiveCameraController(glm::vec3& cameraPos, float yaw, float pitch,
+                              float fov, float aspectRatio, float moveSpeed,
+                              float zoomSpeed, float panSensitivity);
 
-	PerspectiveCamera& getCamera() { return camera; }
-	const PerspectiveCamera& getCamera() const { return camera; }
+  void update(GLCore::Timestep ts);
+  void OnEvent(GLCore::Event& e);
 
-private:
-	bool OnMouseScrolled(GLCore::MouseScrolledEvent& e);
-	bool OnWindowResized(GLCore::WindowResizeEvent& e);
-	bool OnMouseMoved(GLCore::MouseMovedEvent& e);
+  PerspectiveCamera& getCamera() { return camera; }
+  const PerspectiveCamera& getCamera() const { return camera; }
 
-private:
-	PerspectiveCamera camera;
-	float moveSpeed;
-	float zoomSpeed;
-	float panSensitivity;
+ private:
+  bool OnMouseScrolled(GLCore::MouseScrolledEvent& e);
+  bool OnWindowResized(GLCore::WindowResizeEvent& e);
+  bool OnMouseMoved(GLCore::MouseMovedEvent& e);
 
-	float lastMouseX;
-	float lastMouseY;
-	bool firstMouse = true;
+ private:
+  PerspectiveCamera camera;
+  float moveSpeed;
+  float zoomSpeed;
+  float panSensitivity;
+
+  float lastMouseX;
+  float lastMouseY;
+  bool firstMouse = true;
 };
-
+}  // namespace opengl

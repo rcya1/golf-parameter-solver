@@ -1,27 +1,62 @@
 #include "Ball.h"
-#include "BallRenderer.h"
 
 #include <GLCoreUtils.h>
 
-Ball::Ball() : Ball(0.0f, 0.0f, 0.0f, 1.0f) {
+#include <iostream>
 
-}
+#include "BallRenderer.h"
 
-Ball::Ball(float x, float y, float z, float r) : position(x, y, z), radius(r) {
+Ball::Ball() : Ball(0.0f, 0.0f, 0.0f, 1.0f) {}
 
-}
+Ball::Ball(float x, float y, float z, float r) : position(x, y, z), radius(r) {}
 
-void Ball::update(GLCore::Timestep ts) {
+void Ball::update(GLCore::Timestep ts, float interpolationFactor) {
+  if (this->rigidBody == nullptr || interpolationFactor == -1) {
+    return;
+  }
 
+  reactphysics3d::Transform currTransform = this->rigidBody->getTransform();
+
+  reactphysics3d::Transform interpolatedTransform =
+      reactphysics3d::Transform::interpolateTransforms(
+          prevTransform, currTransform, interpolationFactor);
+
+  prevTransform = currTransform;
+  position =
+      glm::vec3(currTransform.getPosition().x, currTransform.getPosition().y,
+                currTransform.getPosition().z);
 }
 
 void Ball::render() {
-	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(position.x, position.y, position.z));
-	model = glm::scale(model, glm::vec3(radius, radius, radius));
-	BallRenderer::getInstance().add(model);
+  glm::mat4 model = glm::mat4(1.0f);
+  model = glm::translate(model, glm::vec3(position.x, position.y, position.z));
+  model = glm::scale(model, glm::vec3(radius, radius, radius));
+  BallRenderer::getInstance().add(model);
 }
 
-void Ball::imGuiRender() {
+void Ball::imGuiRender() {}
 
+void Ball::addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
+                      reactphysics3d::PhysicsCommon& physicsCommon) {
+  reactphysics3d::Vector3 position(position.x, position.y, position.z);
+  reactphysics3d::Quaternion orientation =
+      reactphysics3d::Quaternion::identity();
+  reactphysics3d::Transform transform(position, orientation);
+
+  this->prevTransform = transform;
+
+  this->rigidBody = physicsWorld->createRigidBody(transform);
+  this->rigidBody->setType(reactphysics3d::BodyType::DYNAMIC);
+  this->rigidBody->setMass(radius * radius * radius);
+
+  reactphysics3d::SphereShape* sphereShape =
+      physicsCommon.createSphereShape(radius);
+  reactphysics3d::Transform shapeTransform =
+      reactphysics3d::Transform::identity();
+
+  this->collider = this->rigidBody->addCollider(sphereShape, shapeTransform);
+}
+
+void Ball::removePhysics(reactphysics3d::PhysicsWorld* physicsWorld) {
+  physicsWorld->destroyRigidBody(this->rigidBody);
 }

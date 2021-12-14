@@ -1,10 +1,12 @@
 #include "BallModel.h"
-#include "../util/VertexArray.h"
-#include "../util/VertexBuffer.h"
-#include "../util/IndexBuffer.h"
 
 #include <glad/glad.h>
+
 #include <memory>
+
+#include "util/IndexBuffer.h"
+#include "util/VertexArray.h"
+#include "util/VertexBuffer.h"
 
 BallModel::BallModel() {
   float radius = 1.0f;
@@ -54,15 +56,19 @@ BallModel::BallModel() {
     }
   }
 
-  vertexArray = std::make_unique<VertexArray>();
+  vertexArray = std::make_unique<opengl::VertexArray>();
   vertexArray->bind();
 
-  vertexBuffer = std::make_unique<VertexBuffer>(vertexData.size() * sizeof(float), vertexData.data(), 
-                                                6 * sizeof(float), GL_STATIC_DRAW);
-  vertexBuffer->setVertexAttribute(0, 3, GL_FLOAT, 0); // position
-  vertexBuffer->setVertexAttribute(1, 3, GL_FLOAT, 3 * sizeof(float)); // normal
+  vertexBuffer = std::make_unique<opengl::VertexBuffer>(
+      vertexData.size() * sizeof(float), vertexData.data(), 6 * sizeof(float),
+      GL_STATIC_DRAW);
+  vertexBuffer->setVertexAttribute(0, 3, GL_FLOAT, 0);  // position
+  vertexBuffer->setVertexAttribute(1, 3, GL_FLOAT,
+                                   3 * sizeof(float));  // normal
 
-  indexBuffer = std::make_unique<IndexBuffer>(indexData.size() * sizeof(unsigned int), indexData.data(), GL_STATIC_DRAW);
+  indexBuffer = std::make_unique<opengl::IndexBuffer>(
+      indexData.size() * sizeof(unsigned int), indexData.data(),
+      GL_STATIC_DRAW);
 }
 
 void BallModel::freeModel() {
