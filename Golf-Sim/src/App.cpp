@@ -1,18 +1,19 @@
 #include "AppLayer.h"
 #include "GLCore.h"
 #include "GLFW/glfw3.h"
+#include "implot.h"
 
 using namespace GLCore;
 
 class App : public Application {
  public:
-  App() : Application("Golf Sim", 3200, 1800) {
-    // Disable cursor
-    glfwSetInputMode(static_cast<GLFWwindow*>(GetWindow().GetNativeWindow()),
-                     GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-    PushLayer(new AppLayer());
+  App() : Application("Golf Phase Space Simulator", 3200, 1800) {
+    ImPlot::CreateContext();
+    PushLayer(
+        new AppLayer(static_cast<GLFWwindow*>(GetWindow().GetNativeWindow())));
   }
+
+  ~App() { ImGui::DestroyContext(); }
 };
 
 int main() {

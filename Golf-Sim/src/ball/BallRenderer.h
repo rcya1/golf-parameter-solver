@@ -6,8 +6,13 @@
 #include <queue>
 
 #include "lights/Lights.h"
-#include "util/PerspectiveCamera.h"
-#include "util/Shader.h"
+#include "util/opengl/PerspectiveCamera.h"
+#include "util/opengl/Shader.h"
+
+struct BallRenderJob {
+  glm::mat4 model;
+  glm::vec3 color;
+};
 
 class BallRenderer {
  public:
@@ -18,12 +23,12 @@ class BallRenderer {
 
   void render(opengl::PerspectiveCamera& camera,
               lights::LightScene& lightScene);
-  void add(glm::mat4 model);
+  void add(BallRenderJob job);
   void freeRenderer();
 
  private:
   opengl::Shader shader;
-  std::queue<glm::mat4> queue;
+  std::queue<BallRenderJob> queue;
 
   BallRenderer();
 

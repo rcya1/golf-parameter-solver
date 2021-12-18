@@ -4,9 +4,9 @@
 
 #include <memory>
 
-#include "util/IndexBuffer.h"
-#include "util/VertexArray.h"
-#include "util/VertexBuffer.h"
+#include "util/opengl/IndexBuffer.h"
+#include "util/opengl/VertexArray.h"
+#include "util/opengl/VertexBuffer.h"
 
 BallModel::BallModel() {
   float radius = 1.0f;

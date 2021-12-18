@@ -2,6 +2,7 @@
 
 #include <GLCore.h>
 #include <GLCoreUtils.h>
+#include <GLFW/glfw3.h>
 #include <reactphysics3d/reactphysics3d.h>
 
 #include <memory>
@@ -9,11 +10,12 @@
 #include "ball/Ball.h"
 #include "lights/Lights.h"
 #include "terrain/Terrain.h"
-#include "util/PerspectiveCameraController.h"
+#include "util/opengl/PerspectiveCameraController.h"
+#include "util/plot/TimeMetrics.h"
 
 class AppLayer : public GLCore::Layer {
  public:
-  AppLayer();
+  AppLayer(GLFWwindow* window);
   virtual ~AppLayer();
 
   virtual void OnAttach() override;
@@ -23,12 +25,18 @@ class AppLayer : public GLCore::Layer {
   virtual void imGuiRender() override;
 
  private:
+  GLFWwindow* window;
+  bool isCursorControllingCamera;
+
   opengl::PerspectiveCameraController cameraController;
   lights::LightScene lightScene;
-  Ball ball;
+  std::vector<Ball> balls;
   Terrain terrain;
+  TimeMetrics timeMetrics;
 
   float physicsAccumulatedTime = 0;
+  bool physicsRunning = true;
+  bool justStartedPhysics = true;
   reactphysics3d::PhysicsCommon physicsCommon;
   reactphysics3d::PhysicsWorld* physicsWorld;
 };

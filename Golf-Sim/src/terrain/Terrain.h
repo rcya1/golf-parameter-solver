@@ -7,10 +7,10 @@
 #include <vector>
 
 #include "lights/Lights.h"
-#include "util/PerspectiveCamera.h"
-#include "util/Shader.h"
-#include "util/VertexArray.h"
-#include "util/VertexBuffer.h"
+#include "util/opengl/PerspectiveCamera.h"
+#include "util/opengl/Shader.h"
+#include "util/opengl/VertexArray.h"
+#include "util/opengl/VertexBuffer.h"
 
 class Terrain {
  public:
@@ -34,6 +34,7 @@ class Terrain {
   float mapHeight;
 
   glm::vec3 position;
+  glm::vec3 color;
 
   std::vector<float> heightMap;
   float minHeight;

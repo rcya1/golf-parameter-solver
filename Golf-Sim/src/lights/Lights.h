@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-#include "util/Shader.h"
+#include "util/opengl/Shader.h"
 
 namespace lights {
 struct PointLight {

@@ -8,11 +8,11 @@
 class Ball {
  public:
   Ball();
-  Ball(float x, float y, float z, float r);
+  Ball(float x, float y, float z, float r, glm::vec3 color);
 
   void update(GLCore::Timestep ts, float interpolationFactor = -1);
   void render();
-  void imGuiRender();
+  void imGuiRender(int index);
 
   void addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
                   reactphysics3d::PhysicsCommon& physicsCommon);
@@ -21,6 +21,7 @@ class Ball {
  private:
   glm::vec3 position;
   float radius;
+  glm::vec3 color;
 
   reactphysics3d::RigidBody* rigidBody;
   reactphysics3d::Collider* collider;

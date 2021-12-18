@@ -8,7 +8,7 @@
 
 #include "PerlinNoise.h"
 #include "lights/Lights.h"
-#include "util/PerspectiveCamera.h"
+#include "util/opengl/PerspectiveCamera.h"
 
 Terrain::Terrain(glm::vec3 position, int numCols, int numRows, float mapWidth,
                  float mapHeight)
@@ -17,6 +17,7 @@ Terrain::Terrain(glm::vec3 position, int numCols, int numRows, float mapWidth,
       mapWidth(mapWidth),
       mapHeight(mapHeight),
       position(position),
+      color(0.1f, 0.35f, 0.1f),
       minHeight(0.0),
       maxHeight(0.0),
       rigidBody(nullptr),
@@ -99,8 +100,8 @@ void Terrain::render(opengl::PerspectiveCamera& camera,
                      lights::LightScene& lightScene) {
   shader.activate();
   shader.setVec3f("material.ambient", 0.0f, 0.0f, 0.0f);
-  shader.setVec3f("material.diffuse", 0.1f, 0.35f, 0.1f);
-  shader.setVec3f("material.specular", 0.25f, 0.25f, 0.25f);
+  shader.setVec3f("material.diffuse", color);
+  shader.setVec3f("material.specular", 0.025f, 0.025f, 0.025f);
   shader.setFloat("material.shininess", 2);
   shader.setVec3f("viewPos", camera.getPos());
   shader.setMat4f("view", false, camera.getViewMatrix());
@@ -115,7 +116,21 @@ void Terrain::render(opengl::PerspectiveCamera& camera,
   glDrawArrays(GL_TRIANGLES, 0, 2 * 3 * numRows * numCols);
 }
 
-void Terrain::imGuiRender() {}
+void Terrain::imGuiRender() {
+  ImGui::Begin("Terrain Controls");
+  ImGui::SetWindowFontScale(2.0);
+  if (ImGui::DragFloat3("Position", glm::value_ptr(position), 1.0f, -10.0f,
+                        10.0f)) {
+    reactphysics3d::Vector3 position(position.x, position.y, position.z);
+    reactphysics3d::Quaternion orientation =
+        reactphysics3d::Quaternion::identity();
+    reactphysics3d::Transform newTransform(position, orientation);
+
+    rigidBody->setTransform(newTransform);
+  }
+  ImGui::ColorEdit3("Color", glm::value_ptr(color));
+  ImGui::End();
+}
 
 void Terrain::addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
                          reactphysics3d::PhysicsCommon& physicsCommon) {
