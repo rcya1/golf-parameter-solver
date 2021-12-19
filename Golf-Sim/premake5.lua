@@ -10,7 +10,8 @@ project "Golf-Sim"
 	files
 	{
 		"src/**.h",
-		"src/**.cpp"
+		"src/**.cpp",
+		"vendor/implot/**.cpp"
 	}
 
 	defines
