@@ -6,21 +6,21 @@
 #include "GLCore/Core/Input.h"
 #include "GLCore/Core/KeyCodes.h"
 #include "ball/BallRenderer.h"
+#include "implot.h"
 #include "lights/Lights.h"
 #include "terrain/PerlinNoise.h"
 #include "util/opengl/PerspectiveCameraController.h"
-#include "implot.h"
 
 using namespace GLCore;
 using namespace GLCore::Utils;
 
 AppLayer::AppLayer(GLFWwindow* window)
     : window(window),
-      cameraController(glm::vec3(0, 5.0, 5.0), -90, 0, 45.0, 16.0 / 9.0, 3.0,
+      cameraController(glm::vec3(0, 5.0, 5.0), -90, 0, 45.0, 2.0 / 1.0, 3.0,
                        5.0, 0.1),
       balls{Ball(-1.0, 10.0f, 0.0, 0.5, glm::vec3(0.808f, 0.471f, 0.408f)),
             Ball(1.0, 10.0f, 0.0, 0.5, glm::vec3(0.408f, 0.471f, 0.808f))},
-      terrain(glm::vec3(0.0, -5.0, 0.0), 10, 10, 10.0f, 10.0f) {
+      terrain(glm::vec3(0.0, -5.0, 0.0), 10, 10, 10.0f, 10.0f, 5.0f, 5.0f) {
   lightScene = lights::LightScene{
       std::vector<lights::PointLight>{
           lights::createBasicPointLight(glm::vec3(25.0f, 25.0f, 25.0f)),
@@ -34,9 +34,6 @@ AppLayer::AppLayer(GLFWwindow* window)
       },
       std::vector<lights::DirLight>{
           lights::createBasicDirLight(glm::vec3(0.0f, -1.0f, 0.0f))}};
-
-  noise::initNoise();
-  terrain.generateModel(5.0f, 5.0f);
 
   physicsWorld = physicsCommon.createPhysicsWorld();
 
@@ -82,6 +79,10 @@ void AppLayer::OnEvent(Event& event) {
 
     return false;
   });
+  dispatcher.Dispatch<GLCore::WindowResizeEvent>([&](WindowResizeEvent& e) {
+    glViewport(0, 0, e.GetWidth(), e.GetHeight());
+    return false;
+  });
 
   cameraController.OnEvent(event, isCursorControllingCamera);
 }
@@ -121,7 +122,6 @@ void AppLayer::update(Timestep ts) {
 
 void AppLayer::imGuiRender() {
   ImGui::Begin("Physics");
-  ImGui::SetWindowFontScale(2.0);
   if (ImGui::Button("Start / Stop")) {
     physicsRunning = !physicsRunning;
     if (physicsRunning) {
@@ -131,12 +131,11 @@ void AppLayer::imGuiRender() {
   ImGui::End();
 
   ImGui::Begin("Balls");
-  ImGui::SetWindowFontScale(2.0);
   for (int i = 0; i < balls.size(); i++) {
     balls[i].imGuiRender(i);
   }
   ImGui::End();
 
-  terrain.imGuiRender();
+  terrain.imGuiRender(physicsWorld, physicsCommon);
   timeMetrics.imGuiRender();
 }

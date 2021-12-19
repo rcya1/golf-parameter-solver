@@ -15,7 +15,6 @@ void TimeMetrics::update(GLCore::Timestep& ts) {
 
 void TimeMetrics::imGuiRender() {
   ImGui::Begin("Time Metrics");
-  ImGui::SetWindowFontScale(2.0);
 
   float average[] = {sum / num};
 
@@ -26,7 +25,7 @@ void TimeMetrics::imGuiRender() {
   static ImPlotAxisFlags flags = ImPlotAxisFlags_None;
   ImPlot::SetNextPlotLimitsX(time - historyLength, time, ImGuiCond_Always);
   ImPlot::SetNextPlotLimitsY(0, 100.0);
-  if (ImPlot::BeginPlot("##Scrolling", NULL, NULL, ImVec2(-1, 300), 0, flags,
+  if (ImPlot::BeginPlot("##Scrolling", NULL, NULL, ImVec2(-1, 150), 0, flags,
                         flags)) {
     ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
     ImPlot::PlotShaded("Time per Frame (ms)", &timePerFrameScrollBuffer.data[0].x,
@@ -38,7 +37,7 @@ void TimeMetrics::imGuiRender() {
   }
   ImPlot::SetNextPlotLimitsX(0, historyLength, ImGuiCond_Always);
   ImPlot::SetNextPlotLimitsY(0, 100.0);
-  if (ImPlot::BeginPlot("##Rolling", NULL, NULL, ImVec2(-1, 300), 0, flags,
+  if (ImPlot::BeginPlot("##Rolling", NULL, NULL, ImVec2(-1, 150), 0, flags,
                         flags)) {
     ImPlot::PlotLine("Time per Frame (ms)", &timePerFrameRollBuffer.data[0].x,
                      &timePerFrameRollBuffer.data[0].y,

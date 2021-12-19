@@ -15,13 +15,14 @@
 class Terrain {
  public:
   Terrain(glm::vec3 position, int numHorizontal, int numVertical,
-          float mapWidth, float mapHeight);
-  void generateModel(float noiseFreq, float noiseAmp);
+          float mapWidth, float mapHeight, float noiseFreq, float noiseAmp);
+  void generateModel();
   void freeModel();
 
   void update(GLCore::Timestep ts, float interpolationFactor = -1);
   void render(opengl::PerspectiveCamera& camera, lights::LightScene& lightScene);
-  void imGuiRender();
+  void imGuiRender(reactphysics3d::PhysicsWorld* physicsWorld,
+                   reactphysics3d::PhysicsCommon& physicsCommon);
 
   void addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
                   reactphysics3d::PhysicsCommon& physicsCommon);
@@ -32,6 +33,9 @@ class Terrain {
   int numCols;
   float mapWidth;
   float mapHeight;
+
+  float noiseFreq;
+  float noiseAmp;
 
   glm::vec3 position;
   glm::vec3 color;

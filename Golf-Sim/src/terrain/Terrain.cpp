@@ -11,7 +11,7 @@
 #include "util/opengl/PerspectiveCamera.h"
 
 Terrain::Terrain(glm::vec3 position, int numCols, int numRows, float mapWidth,
-                 float mapHeight)
+                 float mapHeight, float noiseFreq, float noiseAmp)
     : numCols(numCols),
       numRows(numRows),
       mapWidth(mapWidth),
@@ -20,15 +20,21 @@ Terrain::Terrain(glm::vec3 position, int numCols, int numRows, float mapWidth,
       color(0.1f, 0.35f, 0.1f),
       minHeight(0.0),
       maxHeight(0.0),
+      noiseFreq(noiseFreq),
+      noiseAmp(noiseAmp),
       rigidBody(nullptr),
       collider(nullptr),
       shader("assets/shaders/LightingVertexShader.vert",
-             "assets/shaders/LightingFragmentShader.frag") {}
+             "assets/shaders/LightingFragmentShader.frag") {
+  generateModel();
+}
 
-void Terrain::generateModel(float noiseFreq, float noiseAmp) {
+void Terrain::generateModel() {
   if (heightMap.size() > 0) {
     freeModel();
   }
+
+  noise::initNoise();
 
   heightMap = std::vector<float>((numRows + 1) * (numCols + 1));
 
@@ -116,10 +122,10 @@ void Terrain::render(opengl::PerspectiveCamera& camera,
   glDrawArrays(GL_TRIANGLES, 0, 2 * 3 * numRows * numCols);
 }
 
-void Terrain::imGuiRender() {
+void Terrain::imGuiRender(reactphysics3d::PhysicsWorld* physicsWorld,
+                          reactphysics3d::PhysicsCommon& physicsCommon) {
   ImGui::Begin("Terrain Controls");
-  ImGui::SetWindowFontScale(2.0);
-  if (ImGui::DragFloat3("Position", glm::value_ptr(position), 1.0f, -10.0f,
+  if (ImGui::DragFloat3("Position", glm::value_ptr(position), 0.5f, -10.0f,
                         10.0f)) {
     reactphysics3d::Vector3 position(position.x, position.y, position.z);
     reactphysics3d::Quaternion orientation =
@@ -129,6 +135,13 @@ void Terrain::imGuiRender() {
     rigidBody->setTransform(newTransform);
   }
   ImGui::ColorEdit3("Color", glm::value_ptr(color));
+  ImGui::DragFloat("Noise Frequency", &noiseFreq, 0.5f, 0.01f, 20.0f);
+  ImGui::DragFloat("Noise Amp", &noiseAmp, 0.5f, 0.0f, 20.0f);
+  if (ImGui::Button("Regenerate Terrain")) {
+    generateModel();
+    removePhysics(physicsWorld);
+    addPhysics(physicsWorld, physicsCommon);
+  }
   ImGui::End();
 }
 

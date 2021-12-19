@@ -7,10 +7,16 @@ using namespace GLCore;
 
 class App : public Application {
  public:
-  App() : Application("Golf Phase Space Simulator", 3200, 1800) {
+  App()
+      : Application("Golf Phase Space Simulator") {
     ImPlot::CreateContext();
-    PushLayer(
-        new AppLayer(static_cast<GLFWwindow*>(GetWindow().GetNativeWindow())));
+
+    GLFWwindow* window =
+        static_cast<GLFWwindow*>(GetWindow().GetNativeWindow());
+    const GLFWvidmode* videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor()); 
+    glfwSetWindowSize(window, videoMode->width * 3 / 4, videoMode->width * 3 / 8);
+    
+    PushLayer(new AppLayer(window));
   }
 
   ~App() { ImGui::DestroyContext(); }
