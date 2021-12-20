@@ -14,6 +14,7 @@ Terrain::Terrain(glm::vec3 position, int numCols, int numRows, float mapWidth,
                  float mapHeight, float noiseFreq, float noiseAmp)
     : numCols(numCols),
       numRows(numRows),
+      numVertices(0),
       mapWidth(mapWidth),
       mapHeight(mapHeight),
       position(position),
@@ -46,23 +47,23 @@ void Terrain::generateModel() {
 
   for (int j = 0; j <= numCols; j++) {
     for (int i = 0; i <= numRows; i++) {
-      float x = i * hSpacing - this->mapWidth / 2;
-      float z = j * vSpacing - this->mapHeight / 2;
+      float x = j * hSpacing - this->mapWidth / 2;
+      float z = i * vSpacing - this->mapHeight / 2;
 
       // float height = noiseAmp;
       // float height = (x * x + z * z) / 10.0;
       float height = noise::noise(x / noiseFreq, -5, z / noiseFreq) * noiseAmp;
 
-      heightMap[j * (static_cast<long long>(numCols) + 1) + i] = height;
+      heightMap[i * (static_cast<long long>(numCols) + 1) + j] = height;
     }
   }
 
   for (int j = 0; j < numCols; j++) {
     for (int i = 0; i < numRows; i++) {
-      int topLeft = j * (numCols + 1) + i;
-      int topRight = (j + 1) * (numCols + 1) + i;
-      int botLeft = j * (numCols + 1) + i + 1;
-      int botRight = (j + 1) * (numCols + 1) + i + 1;
+      int topLeft = i * (numCols + 1) + j;
+      int topRight = (i + 1) * (numCols + 1) + j;
+      int botLeft = i * (numCols + 1) + j + 1;
+      int botRight = (i + 1) * (numCols + 1) + j + 1;
 
       std::vector<float> n1 = getNormal(topLeft, topRight, botLeft);
       addVertex(topLeft, n1);
@@ -86,6 +87,8 @@ void Terrain::generateModel() {
   vertexBuffer->setVertexAttribute(1, 3, GL_FLOAT, 3 * sizeof(float));
 
   vertexArray->unbind();
+
+  numVertices = 2 * 3 * numRows * numCols;
 }
 
 void Terrain::freeModel() {
@@ -119,7 +122,7 @@ void Terrain::render(opengl::PerspectiveCamera& camera,
   glm::mat4 model = glm::mat4(1.0f);
   model = glm::translate(model, position);
   shader.setMat4f("model", false, glm::value_ptr(model));
-  glDrawArrays(GL_TRIANGLES, 0, 2 * 3 * numRows * numCols);
+  glDrawArrays(GL_TRIANGLES, 0, numVertices);
 }
 
 void Terrain::imGuiRender(reactphysics3d::PhysicsWorld* physicsWorld,
@@ -135,6 +138,11 @@ void Terrain::imGuiRender(reactphysics3d::PhysicsWorld* physicsWorld,
     rigidBody->setTransform(newTransform);
   }
   ImGui::ColorEdit3("Color", glm::value_ptr(color));
+
+  ImGui::DragFloat("Map Width", &mapWidth, 1.0, 1, 100);
+  ImGui::DragFloat("Map Height", &mapHeight, 1.0, 1, 100);
+  ImGui::DragInt("Number of Columns", &numCols, 1.0, 1, 100);
+  ImGui::DragInt("Number of Rows", &numRows, 1.0, 1, 100);
   ImGui::DragFloat("Noise Frequency", &noiseFreq, 0.5f, 0.01f, 20.0f);
   ImGui::DragFloat("Noise Amp", &noiseAmp, 0.5f, 0.0f, 20.0f);
   if (ImGui::Button("Regenerate Terrain")) {

@@ -31,6 +31,7 @@ class Terrain {
  private:
   int numRows;
   int numCols;
+  int numVertices;
   float mapWidth;
   float mapHeight;
 
