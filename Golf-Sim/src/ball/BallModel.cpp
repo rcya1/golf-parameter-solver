@@ -62,7 +62,7 @@ BallModel::BallModel() {
     }
   }
 
-  vertexArray = std::make_unique<opengl::VertexArray2>();
+  vertexArray = std::make_unique<opengl::VertexArray>();
   vertexArray->bind();
 
   vertexBuffer = std::make_unique<opengl::VertexBuffer>(

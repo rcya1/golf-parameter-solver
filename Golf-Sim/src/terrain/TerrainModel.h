@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "util/opengl/VertexBuffer.h"
-#include "util/opengl/VertexArray.cpp"
+#include "util/opengl/VertexArray.h"
 
 class TerrainModel {
  public:
@@ -12,7 +12,7 @@ class TerrainModel {
   void generateModel(std::vector<float>* heightMap, int numCols, int numRows, float mapWidth, float mapHeight);
   void freeModel();
 
-  std::unique_ptr<opengl::VertexArray2>& getVertexArray() { return vertexArray; }
+  std::unique_ptr<opengl::VertexArray>& getVertexArray() { return vertexArray; }
 
   int getNumVertices() { return numVertices; }
 
@@ -25,7 +25,7 @@ class TerrainModel {
   std::vector<float> vertices;
   int numVertices;
 
-  std::unique_ptr<opengl::VertexArray2> vertexArray;
+  std::unique_ptr<opengl::VertexArray> vertexArray;
   std::unique_ptr<opengl::VertexBuffer> vertexBuffer;
 
   std::pair<float, float> getXZ(int index);

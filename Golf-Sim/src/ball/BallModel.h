@@ -22,14 +22,14 @@ class BallModel {
   BallModel();
   void freeModel();
 
-  std::unique_ptr<opengl::VertexArray2>& getVertexArray() { return vertexArray; }
+  std::unique_ptr<opengl::VertexArray>& getVertexArray() { return vertexArray; }
   int getIndexDataSize() { return indexData.size(); }
 
  private:
   std::vector<float> vertexData;
   std::vector<unsigned int> indexData;
 
-  std::unique_ptr<opengl::VertexArray2> vertexArray;
+  std::unique_ptr<opengl::VertexArray> vertexArray;
   std::unique_ptr<opengl::VertexBuffer> vertexBuffer;
   std::unique_ptr<opengl::IndexBuffer> indexBuffer;
 

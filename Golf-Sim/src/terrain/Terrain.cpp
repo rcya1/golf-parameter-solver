@@ -1,5 +1,7 @@
 #include "Terrain.h"
 
+#include <terrain/TerrainRenderer.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -15,7 +17,6 @@ Terrain::Terrain(glm::vec3 position, int numCols, int numRows, float mapWidth,
                  float mapHeight, float noiseFreq, float noiseAmp)
     : numCols(numCols),
       numRows(numRows),
-      numVertices(0),
       mapWidth(mapWidth),
       mapHeight(mapHeight),
       position(position),
@@ -25,9 +26,7 @@ Terrain::Terrain(glm::vec3 position, int numCols, int numRows, float mapWidth,
       noiseFreq(noiseFreq),
       noiseAmp(noiseAmp),
       rigidBody(nullptr),
-      collider(nullptr),
-      shader("assets/shaders/TerrainVertexShader.vert",
-             "assets/shaders/TerrainFragmentShader.frag") {
+      collider(nullptr) {
   generateModel();
 }
 
@@ -59,13 +58,12 @@ void Terrain::generateModel() {
     }
   }
 
-  model.generateModel(&heightMap, numCols, numRows, mapWidth, mapHeight);
+  terrainModel.generateModel(&heightMap, numCols, numRows, mapWidth, mapHeight);
 }
 
 void Terrain::freeModel() {
   heightMap.clear();
-
-  model.freeModel();
+  terrainModel.freeModel();
 }
 
 void Terrain::update(GLCore::Timestep ts, float interpolationFactor) {
@@ -74,27 +72,10 @@ void Terrain::update(GLCore::Timestep ts, float interpolationFactor) {
   }
 }
 
-void Terrain::render(opengl::PerspectiveCamera& camera,
-                     lights::LightScene& lightScene, glm::vec2 goalPosition,
+void Terrain::render(TerrainRenderer& renderer, glm::vec2 goalPos,
                      float goalRadius) {
-  shader.activate();
-  shader.setVec3f("material.ambient", 0.0f, 0.0f, 0.0f);
-  shader.setVec3f("material.diffuse", color);
-  shader.setVec3f("material.specular", 0.025f, 0.025f, 0.025f);
-  shader.setFloat("material.shininess", 2);
-  shader.setVec3f("viewPos", camera.getPos());
-  shader.setMat4f("view", false, camera.getViewMatrix());
-  shader.setMat4f("projection", false, camera.getProjectionMatrix());
-  shader.setVec2f("goalPos", goalPosition);
-  shader.setFloat("goalRadius", goalRadius);
-
-  lights::setLightScene(shader, lightScene);
-  model.getVertexArray()->bind();
-
-  glm::mat4 model = glm::mat4(1.0f);
-  model = glm::translate(model, position);
-  shader.setMat4f("model", false, glm::value_ptr(model));
-  glDrawArrays(GL_TRIANGLES, 0, numVertices);
+  renderer.add(
+      TerrainRenderJob{terrainModel, position, color, goalPos, goalRadius});
 }
 
 void Terrain::imGuiRender(reactphysics3d::PhysicsWorld* physicsWorld,
@@ -119,7 +100,7 @@ void Terrain::imGuiRender(reactphysics3d::PhysicsWorld* physicsWorld,
   ImGui::DragFloat("Noise Amp", &noiseAmp, 0.5f, 0.0f, 20.0f);
   if (ImGui::Button("Regenerate Terrain")) {
     generateModel();
-    removePhysics(physicsWorld);
+    removePhysics(physicsWorld, physicsCommon);
     addPhysics(physicsWorld, physicsCommon);
   }
   ImGui::End();
@@ -136,20 +117,20 @@ void Terrain::addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
   this->rigidBody->setType(reactphysics3d::BodyType::STATIC);
 
   reactphysics3d::Vector3 scaling(mapWidth / numCols, 1.0, mapHeight / numRows);
-  reactphysics3d::HeightFieldShape* heightFieldShape =
-      physicsCommon.createHeightFieldShape(
-          numCols + 1, numRows + 1, minHeight, maxHeight, heightMap.data(),
-          reactphysics3d::HeightFieldShape::HeightDataType::HEIGHT_FLOAT_TYPE,
-          1, 1.0f, scaling);
+  this->shape = physicsCommon.createHeightFieldShape(
+      numCols + 1, numRows + 1, minHeight, maxHeight, heightMap.data(),
+      reactphysics3d::HeightFieldShape::HeightDataType::HEIGHT_FLOAT_TYPE, 1,
+      1.0f, scaling);
   reactphysics3d::Transform shapeTransform =
       reactphysics3d::Transform::identity();
 
-  this->collider =
-      this->rigidBody->addCollider(heightFieldShape, shapeTransform);
+  this->collider = this->rigidBody->addCollider(shape, shapeTransform);
   this->collider->setCollisionCategoryBits(CollisionCategory::TERRAIN);
   this->collider->setCollideWithMaskBits(CollisionCategory::BALL);
 }
 
-void Terrain::removePhysics(reactphysics3d::PhysicsWorld* physicsWorld) {
-  physicsWorld->destroyRigidBody(this->rigidBody);
+void Terrain::removePhysics(reactphysics3d::PhysicsWorld* physicsWorld,
+                            reactphysics3d::PhysicsCommon& physicsCommon) {
+  physicsWorld->destroyRigidBody(rigidBody);
+  physicsCommon.destroyHeightFieldShape(shape);
 }

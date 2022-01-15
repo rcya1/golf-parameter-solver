@@ -2,16 +2,18 @@
 
 #include <GLCore.h>
 #include <reactphysics3d/reactphysics3d.h>
+#include <terrain/TerrainModel.h>
 
 #include <memory>
 #include <vector>
+
+#include "terrain/TerrainRenderer.h"
 
 #include "lights/Lights.h"
 #include "util/opengl/PerspectiveCamera.h"
 #include "util/opengl/Shader.h"
 #include "util/opengl/VertexArray.h"
 #include "util/opengl/VertexBuffer.h"
-#include <terrain/TerrainModel.h>
 
 class Terrain {
  public:
@@ -21,14 +23,14 @@ class Terrain {
   void freeModel();
 
   void update(GLCore::Timestep ts, float interpolationFactor = -1);
-  void render(opengl::PerspectiveCamera& camera, lights::LightScene& lightScene,
-              glm::vec2 goalPosition, float goalRadius);
+  void render(TerrainRenderer& renderer, glm::vec2 goalPos, float goalRadius);
   void imGuiRender(reactphysics3d::PhysicsWorld* physicsWorld,
                    reactphysics3d::PhysicsCommon& physicsCommon);
 
   void addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
                   reactphysics3d::PhysicsCommon& physicsCommon);
-  void removePhysics(reactphysics3d::PhysicsWorld* physicsWorld);
+  void removePhysics(reactphysics3d::PhysicsWorld* physicsWorld,
+                     reactphysics3d::PhysicsCommon& physicsCommon);
 
   glm::vec3 getPosition() { return position; }
 
@@ -37,7 +39,6 @@ class Terrain {
  private:
   int numRows;
   int numCols;
-  int numVertices;
   float mapWidth;
   float mapHeight;
 
@@ -48,13 +49,12 @@ class Terrain {
   glm::vec3 color;
 
   std::vector<float> heightMap;
-  TerrainModel model;
+  TerrainModel terrainModel;
   float minHeight;
   float maxHeight;
 
-  opengl::Shader shader;
-
   reactphysics3d::RigidBody* rigidBody;
   reactphysics3d::Collider* collider;
+  reactphysics3d::HeightFieldShape* shape;
   reactphysics3d::Transform prevTransform;
 };

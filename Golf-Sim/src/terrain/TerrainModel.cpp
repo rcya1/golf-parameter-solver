@@ -13,6 +13,8 @@ void TerrainModel::generateModel(std::vector<float>* heightMap, int numCols,
   this->mapWidth = mapWidth;
   this->mapHeight = mapHeight;
 
+  freeModel();
+
   for (int j = 0; j < numCols; j++) {
     for (int i = 0; i < numRows; i++) {
       int topLeft = i * (numCols + 1) + j;
@@ -32,7 +34,7 @@ void TerrainModel::generateModel(std::vector<float>* heightMap, int numCols,
     }
   }
 
-  vertexArray = std::make_unique<opengl::VertexArray2>();
+  vertexArray = std::make_unique<opengl::VertexArray>();
   vertexArray->bind();
 
   vertexBuffer = std::make_unique<opengl::VertexBuffer>(
@@ -47,6 +49,8 @@ void TerrainModel::generateModel(std::vector<float>* heightMap, int numCols,
 }
 
 void TerrainModel::freeModel() {
+  if(vertices.empty()) return;
+
   vertices.clear();
 
   vertexArray->free();

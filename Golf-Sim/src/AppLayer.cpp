@@ -62,7 +62,7 @@ void AppLayer::OnDetach() {
   terrain.freeModel();
   goal.freeModel();
 
-  terrain.removePhysics(physicsWorld);
+  terrain.removePhysics(physicsWorld, physicsCommon);
   for (Ball& ball : balls) {
     ball.removePhysics(physicsWorld, physicsCommon);
   }
@@ -126,8 +126,9 @@ void AppLayer::update(Timestep ts) {
     ball.render(ballRenderer);
   }
   ballRenderer.render(ballModel, cameraController.getCamera(), lightScene);
-  terrain.render(cameraController.getCamera(), lightScene, goal.getPosition(),
-                 goal.getRadius());
+
+  terrain.render(terrainRenderer, goal.getPosition(), goal.getRadius());
+  terrainRenderer.render(cameraController.getCamera(), lightScene);
 
   timeMetrics.update(ts);
 }

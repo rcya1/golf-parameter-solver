@@ -13,6 +13,7 @@
 #include "goal/Goal.h"
 #include "util/opengl/PerspectiveCameraController.h"
 #include "util/plot/TimeMetrics.h"
+#include <terrain/TerrainRenderer.h>
 
 class AppLayer : public GLCore::Layer {
  public:
@@ -35,9 +36,11 @@ class AppLayer : public GLCore::Layer {
   std::vector<Ball> balls;
   BallModel ballModel;
   BallRenderer ballRenderer;
+
+  Terrain terrain;
+  TerrainRenderer terrainRenderer;
   
   Goal goal;
-  Terrain terrain;
   TimeMetrics timeMetrics;
 
   float physicsAccumulatedTime = 0;

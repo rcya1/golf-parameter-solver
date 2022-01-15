@@ -43,4 +43,6 @@ void BallRenderer::render(BallModel& model, opengl::PerspectiveCamera& camera,
 
 void BallRenderer::add(BallRenderJob job) { queue.push(job); }
 
-void BallRenderer::freeRenderer() {}
+void BallRenderer::freeRenderer() {
+  shader.free();
+}

@@ -1,11 +1,11 @@
 #pragma once
 
 namespace opengl {
-class VertexArray2 {
+class VertexArray {
  public:
   unsigned int id;
 
-  VertexArray2();
+  VertexArray();
   void free();
   void bind();
   void unbind();
