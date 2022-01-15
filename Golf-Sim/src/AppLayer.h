@@ -14,6 +14,7 @@
 #include "util/opengl/PerspectiveCameraController.h"
 #include "util/plot/TimeMetrics.h"
 #include <terrain/TerrainRenderer.h>
+#include <goal/GoalRenderer.h>
 
 class AppLayer : public GLCore::Layer {
  public:
@@ -41,6 +42,8 @@ class AppLayer : public GLCore::Layer {
   TerrainRenderer terrainRenderer;
   
   Goal goal;
+  GoalRenderer goalRenderer;
+
   TimeMetrics timeMetrics;
 
   float physicsAccumulatedTime = 0;

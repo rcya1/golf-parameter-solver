@@ -1,9 +1,8 @@
 #include "TerrainModel.h"
+
 #include <GLCore.h>
 
-TerrainModel::TerrainModel() {
-  
-}
+TerrainModel::TerrainModel() {}
 
 void TerrainModel::generateModel(std::vector<float>* heightMap, int numCols,
                                  int numRows, float mapWidth, float mapHeight) {
@@ -49,7 +48,7 @@ void TerrainModel::generateModel(std::vector<float>* heightMap, int numCols,
 }
 
 void TerrainModel::freeModel() {
-  if(vertices.empty()) return;
+  if (vertices.empty()) return;
 
   vertices.clear();
 

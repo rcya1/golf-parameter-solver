@@ -41,6 +41,7 @@ AppLayer::AppLayer(GLFWwindow* window)
   physicsWorld = physicsCommon.createPhysicsWorld();
 
   terrain.addPhysics(physicsWorld, physicsCommon);
+  goal.addPhysics(physicsWorld, physicsCommon);
   for (Ball& ball : balls) {
     ball.addPhysics(physicsWorld, physicsCommon);
   }
@@ -58,14 +59,19 @@ void AppLayer::OnAttach() {
 
 void AppLayer::OnDetach() {
   ballModel.freeModel();
-  ballRenderer.freeRenderer();
   terrain.freeModel();
   goal.freeModel();
 
-  terrain.removePhysics(physicsWorld, physicsCommon);
+  ballRenderer.freeRenderer();
+  terrainRenderer.freeRenderer();
+  goalRenderer.freeRenderer();
+
   for (Ball& ball : balls) {
     ball.removePhysics(physicsWorld, physicsCommon);
   }
+  terrain.removePhysics(physicsWorld, physicsCommon);
+  goal.removePhysics(physicsWorld, physicsCommon);
+
   physicsCommon.destroyPhysicsWorld(physicsWorld);
 }
 
@@ -129,6 +135,9 @@ void AppLayer::update(Timestep ts) {
 
   terrain.render(terrainRenderer, goal.getPosition(), goal.getRadius());
   terrainRenderer.render(cameraController.getCamera(), lightScene);
+
+  goal.render(goalRenderer);
+  goalRenderer.render(cameraController.getCamera(), lightScene);
 
   timeMetrics.update(ts);
 }

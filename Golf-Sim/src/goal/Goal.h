@@ -3,6 +3,8 @@
 #include <GLCore.h>
 #include <reactphysics3d/reactphysics3d.h>
 #include "terrain/Terrain.h"
+#include <goal/GoalModel.h>
+#include <goal/GoalRenderer.h>
 
 class Goal {
  public:
@@ -15,9 +17,12 @@ class Goal {
   void generateModel(Terrain& terrain);
   void freeModel();
 
+  void render(GoalRenderer& renderer);
+
   void addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
                   reactphysics3d::PhysicsCommon& physicsCommon);
-  void removePhysics(reactphysics3d::PhysicsWorld* physicsWorld);
+  void removePhysics(reactphysics3d::PhysicsWorld* physicsWorld,
+                     reactphysics3d::PhysicsCommon& physicsCommon);
 
   glm::vec2 getPosition() { return position; }
   float getRadius() { return radius; }
@@ -26,5 +31,5 @@ class Goal {
   glm::vec2 position;
   float radius;
 
-  std::vector<float> vertices;
+  GoalModel goalModel;
 };
