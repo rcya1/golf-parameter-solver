@@ -3,12 +3,18 @@
 #include <glad/glad.h>
 
 #include <memory>
+#include <cassert>
 
 #include "util/opengl/IndexBuffer.h"
 #include "util/opengl/VertexArray.h"
 #include "util/opengl/VertexBuffer.h"
 
+bool BallModel::instantiated = false;
+
 BallModel::BallModel() {
+  assert(!instantiated);
+  instantiated = true;
+
   float radius = 1.0f;
 
   vertexData.clear();
@@ -56,7 +62,7 @@ BallModel::BallModel() {
     }
   }
 
-  vertexArray = std::make_unique<opengl::VertexArray>();
+  vertexArray = std::make_unique<opengl::VertexArray2>();
   vertexArray->bind();
 
   vertexBuffer = std::make_unique<opengl::VertexBuffer>(

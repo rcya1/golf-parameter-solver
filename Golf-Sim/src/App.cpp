@@ -10,6 +10,7 @@ class App : public Application {
   App()
       : Application("Golf Phase Space Simulator") {
     ImPlot::CreateContext();
+    GetWindow().SetVSync(true);
 
     GLFWwindow* window =
         static_cast<GLFWwindow*>(GetWindow().GetNativeWindow());

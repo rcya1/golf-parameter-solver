@@ -8,6 +8,7 @@
 #include "lights/Lights.h"
 #include "util/opengl/PerspectiveCamera.h"
 #include "util/opengl/Shader.h"
+#include <ball/BallModel.h>
 
 struct BallRenderJob {
   glm::mat4 model;
@@ -16,12 +17,9 @@ struct BallRenderJob {
 
 class BallRenderer {
  public:
-  static BallRenderer& getInstance() {
-    static BallRenderer instance;
-    return instance;
-  }
+  BallRenderer();
 
-  void render(opengl::PerspectiveCamera& camera,
+  void render(BallModel& ballModel, opengl::PerspectiveCamera& camera,
               lights::LightScene& lightScene);
   void add(BallRenderJob job);
   void freeRenderer();
@@ -29,10 +27,4 @@ class BallRenderer {
  private:
   opengl::Shader shader;
   std::queue<BallRenderJob> queue;
-
-  BallRenderer();
-
- public:
-  BallRenderer(BallRenderer const&) = delete;
-  void operator=(BallRenderer const&) = delete;
 };

@@ -11,6 +11,7 @@
 #include "util/opengl/Shader.h"
 #include "util/opengl/VertexArray.h"
 #include "util/opengl/VertexBuffer.h"
+#include <terrain/TerrainModel.h>
 
 class Terrain {
  public:
@@ -20,13 +21,18 @@ class Terrain {
   void freeModel();
 
   void update(GLCore::Timestep ts, float interpolationFactor = -1);
-  void render(opengl::PerspectiveCamera& camera, lights::LightScene& lightScene);
+  void render(opengl::PerspectiveCamera& camera, lights::LightScene& lightScene,
+              glm::vec2 goalPosition, float goalRadius);
   void imGuiRender(reactphysics3d::PhysicsWorld* physicsWorld,
                    reactphysics3d::PhysicsCommon& physicsCommon);
 
   void addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
                   reactphysics3d::PhysicsCommon& physicsCommon);
   void removePhysics(reactphysics3d::PhysicsWorld* physicsWorld);
+
+  glm::vec3 getPosition() { return position; }
+
+  float getMinHeight() { return minHeight; }
 
  private:
   int numRows;
@@ -42,18 +48,11 @@ class Terrain {
   glm::vec3 color;
 
   std::vector<float> heightMap;
+  TerrainModel model;
   float minHeight;
   float maxHeight;
-  std::vector<float> vertices;
-
-  std::unique_ptr<opengl::VertexArray> vertexArray;
-  std::unique_ptr<opengl::VertexBuffer> vertexBuffer;
 
   opengl::Shader shader;
-
-  std::pair<float, float> getXZ(int index);
-  void addVertex(int index, std::vector<float>& norm);
-  std::vector<float> getNormal(int i1, int i2, int i3);
 
   reactphysics3d::RigidBody* rigidBody;
   reactphysics3d::Collider* collider;

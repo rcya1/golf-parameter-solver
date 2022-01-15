@@ -19,28 +19,19 @@ class BallModel {
   const float SECTOR_STEP = 2 * PI / SECTOR_COUNT;
   const float STACK_STEP = PI / STACK_COUNT;
 
-  static BallModel& getInstance() {
-    static BallModel instance;
-    return instance;
-  }
-
-  std::unique_ptr<opengl::VertexArray>& getVertexArray() { return vertexArray; }
-
-  int getIndexDataSize() { return indexData.size(); }
-
+  BallModel();
   void freeModel();
+
+  std::unique_ptr<opengl::VertexArray2>& getVertexArray() { return vertexArray; }
+  int getIndexDataSize() { return indexData.size(); }
 
  private:
   std::vector<float> vertexData;
   std::vector<unsigned int> indexData;
 
-  std::unique_ptr<opengl::VertexArray> vertexArray;
+  std::unique_ptr<opengl::VertexArray2> vertexArray;
   std::unique_ptr<opengl::VertexBuffer> vertexBuffer;
   std::unique_ptr<opengl::IndexBuffer> indexBuffer;
 
-  BallModel();
-
- public:
-  BallModel(BallModel const&) = delete;
-  void operator=(BallModel const&) = delete;
+  static bool instantiated;
 };

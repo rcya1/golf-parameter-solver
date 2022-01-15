@@ -10,6 +10,7 @@
 #include "ball/Ball.h"
 #include "lights/Lights.h"
 #include "terrain/Terrain.h"
+#include "goal/Goal.h"
 #include "util/opengl/PerspectiveCameraController.h"
 #include "util/plot/TimeMetrics.h"
 
@@ -30,7 +31,12 @@ class AppLayer : public GLCore::Layer {
 
   opengl::PerspectiveCameraController cameraController;
   lights::LightScene lightScene;
+
   std::vector<Ball> balls;
+  BallModel ballModel;
+  BallRenderer ballRenderer;
+  
+  Goal goal;
   Terrain terrain;
   TimeMetrics timeMetrics;
 

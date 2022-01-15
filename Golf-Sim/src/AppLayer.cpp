@@ -18,9 +18,10 @@ AppLayer::AppLayer(GLFWwindow* window)
     : window(window),
       cameraController(glm::vec3(0, 5.0, 5.0), -90, 0, 45.0, 2.0 / 1.0, 3.0,
                        5.0, 0.1),
-      balls{Ball(-1.0, 10.0f, 0.0, 0.5, glm::vec3(0.808f, 0.471f, 0.408f)),
-            Ball(1.0, 10.0f, 0.0, 0.5, glm::vec3(0.408f, 0.471f, 0.808f))},
-      terrain(glm::vec3(0.0, -5.0, 0.0), 10, 10, 10.0f, 10.0f, 5.0f, 5.0f) {
+      balls{Ball(-1.0, 5.0f, 0.0, 0.25, glm::vec3(0.808f, 0.471f, 0.408f)),
+            Ball(1.0, 5.0f, 0.0, 0.25, glm::vec3(0.408f, 0.471f, 0.808f))},
+      goal(0, 0, 0.5),
+      terrain(glm::vec3(0.0, -5.0, 0.0), 25, 25, 10.0f, 10.0f, 5.0f, 5.0f) {
   lightScene = lights::LightScene{
       std::vector<lights::PointLight>{
           lights::createBasicPointLight(glm::vec3(25.0f, 25.0f, 25.0f)),
@@ -34,6 +35,8 @@ AppLayer::AppLayer(GLFWwindow* window)
       },
       std::vector<lights::DirLight>{
           lights::createBasicDirLight(glm::vec3(0.0f, -1.0f, 0.0f))}};
+
+  goal.generateModel(terrain);
 
   physicsWorld = physicsCommon.createPhysicsWorld();
 
@@ -54,12 +57,14 @@ void AppLayer::OnAttach() {
 }
 
 void AppLayer::OnDetach() {
-  BallRenderer::getInstance().freeRenderer();
+  ballModel.freeModel();
+  ballRenderer.freeRenderer();
   terrain.freeModel();
+  goal.freeModel();
 
   terrain.removePhysics(physicsWorld);
   for (Ball& ball : balls) {
-    ball.removePhysics(physicsWorld);
+    ball.removePhysics(physicsWorld, physicsCommon);
   }
   physicsCommon.destroyPhysicsWorld(physicsWorld);
 }
@@ -107,15 +112,22 @@ void AppLayer::update(Timestep ts) {
   float interpolationFactor =
       physicsRunning ? physicsAccumulatedTime / desiredPhysicsTimeStep : 0;
   for (Ball& ball : balls) {
-    ball.update(ts, interpolationFactor);
+    ball.update(ts, goal, interpolationFactor);
+    if (ball.hasPhysics() &&
+        ball.getPosition().y <
+            terrain.getPosition().y + terrain.getMinHeight()) {
+      ball.setState(BallState::OUT_OF_BOUNDS);
+      ball.removePhysics(physicsWorld, physicsCommon);
+    }
   }
   terrain.update(ts, interpolationFactor);
 
   for (Ball& ball : balls) {
-    ball.render();
+    ball.render(ballRenderer);
   }
-  BallRenderer::getInstance().render(cameraController.getCamera(), lightScene);
-  terrain.render(cameraController.getCamera(), lightScene);
+  ballRenderer.render(ballModel, cameraController.getCamera(), lightScene);
+  terrain.render(cameraController.getCamera(), lightScene, goal.getPosition(),
+                 goal.getRadius());
 
   timeMetrics.update(ts);
 }

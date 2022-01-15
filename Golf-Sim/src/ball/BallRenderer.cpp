@@ -12,12 +12,10 @@
 #include "util/opengl/PerspectiveCamera.h"
 
 BallRenderer::BallRenderer()
-    : shader("assets/shaders/LightingVertexShader.vert",
-             "assets/shaders/LightingFragmentShader.frag") {
-  BallModel::getInstance();  // make sure the model is loaded
-}
+    : shader("assets/shaders/BallVertexShader.vert",
+             "assets/shaders/BallFragmentShader.frag") {}
 
-void BallRenderer::render(opengl::PerspectiveCamera& camera,
+void BallRenderer::render(BallModel& model, opengl::PerspectiveCamera& camera,
                           lights::LightScene& lightScene) {
   shader.activate();
   shader.setVec3f("material.ambient", 0.0f, 0.0f, 0.0f);
@@ -29,7 +27,7 @@ void BallRenderer::render(opengl::PerspectiveCamera& camera,
 
   lights::setLightScene(shader, lightScene);
 
-  BallModel::getInstance().getVertexArray()->bind();
+  model.getVertexArray()->bind();
 
   while (queue.size()) {
     BallRenderJob job = queue.front();
@@ -38,11 +36,11 @@ void BallRenderer::render(opengl::PerspectiveCamera& camera,
 
     shader.setMat4f("model", false, glm::value_ptr(job.model));
     shader.setVec3f("material.diffuse", job.color);
-    glDrawElements(GL_TRIANGLES, BallModel::getInstance().getIndexDataSize(),
-                   GL_UNSIGNED_INT, (void*)0);
+    glDrawElements(GL_TRIANGLES, model.getIndexDataSize(), GL_UNSIGNED_INT,
+                   (void*)0);
   }
 }
 
 void BallRenderer::add(BallRenderJob job) { queue.push(job); }
 
-void BallRenderer::freeRenderer() { BallModel::getInstance().freeModel(); }
+void BallRenderer::freeRenderer() {}
