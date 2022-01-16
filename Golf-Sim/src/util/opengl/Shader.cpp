@@ -36,12 +36,32 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath,
   unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vertexShader, 1, &vertexCodeC, NULL);
   glCompileShader(vertexShader);
-  LOG_INFO("Compiled vertex shader from " + std::string(vertexPath) + "!");
+  int vertexSuccess;
+  char vertexInfoLog[512];
+  glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &vertexSuccess);
+  if (!vertexSuccess) {
+    glGetShaderInfoLog(vertexShader, 512, NULL, vertexInfoLog);
+    std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
+              << vertexInfoLog << std::endl;
+  } else {
+    LOG_INFO("Compiled vertex shader from " + std::string(vertexPath) +
+             "!");
+  }
 
   unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(fragmentShader, 1, &fragCodeC, NULL);
   glCompileShader(fragmentShader);
-  LOG_INFO("Compiled fragment shader from " + std::string(fragmentPath) + "!");
+  int fragmentSuccess;
+  char fragmentInfoLog[512];
+  glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &fragmentSuccess);
+  if (!fragmentSuccess) {
+    glGetShaderInfoLog(fragmentShader, 512, NULL, fragmentInfoLog);
+    std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n"
+              << fragmentInfoLog << std::endl;
+  } else {
+    LOG_INFO("Compiled fragment shader from " + std::string(fragmentPath) +
+             "!");
+  }
 
   unsigned int geometryShader = -1;
   if (geometryPath != nullptr) {
@@ -60,8 +80,18 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath,
     geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
     glShaderSource(geometryShader, 1, &geomCodeC, NULL);
     glCompileShader(geometryShader);
-    LOG_INFO("Compiled geometry shader from " + std::string(geometryPath) +
-             "!");
+
+    int geometrySuccess;
+    char geometryInfoLog[512];
+    glGetShaderiv(geometryShader, GL_COMPILE_STATUS, &geometrySuccess);
+    if (!geometrySuccess) {
+      glGetShaderInfoLog(geometryShader, 512, NULL, geometryInfoLog);
+      std::cout << "ERROR::SHADER::GEOMETRY::COMPILATION_FAILED\n"
+                << geometryInfoLog << std::endl;
+    } else {
+      LOG_INFO("Compiled geometry shader from " + std::string(geometryPath) +
+               "!");
+    }
   }
 
   this->id = glCreateProgram();

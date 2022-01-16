@@ -19,7 +19,10 @@ class TerrainRenderer {
  public:
   TerrainRenderer();
 
-  void render(opengl::PerspectiveCamera& camera, lights::LightScene& lightScene);
+  void render(opengl::PerspectiveCamera& camera,
+              lights::LightScene& lightScene);
+  void renderLightDepth(opengl::Shader& lightDepthShader,
+                        lights::LightScene& lightScene, int dirLightIndex);
   void add(TerrainRenderJob job);
   void freeRenderer();
 

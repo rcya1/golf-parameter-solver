@@ -31,7 +31,6 @@ void BallRenderer::render(BallModel& model, opengl::PerspectiveCamera& camera,
 
   while (queue.size()) {
     BallRenderJob job = queue.front();
-
     queue.pop();
 
     shader.setMat4f("model", false, glm::value_ptr(job.model));
@@ -41,8 +40,27 @@ void BallRenderer::render(BallModel& model, opengl::PerspectiveCamera& camera,
   }
 }
 
+void BallRenderer::renderLightDepth(BallModel& model,
+                                    opengl::Shader& lightDepthShader,
+                                    lights::LightScene& lightScene,
+                                    int dirLightIndex) {
+  lightDepthShader.activate();
+  lightDepthShader.setMat4f(
+      "lightSpaceMatrix", false,
+      glm::value_ptr(lightScene.dirLights[dirLightIndex].lightSpaceMatrix));
+
+  model.getVertexArray()->bind();
+
+  while (queue.size()) {
+    BallRenderJob job = queue.front();
+    queue.pop();
+
+    lightDepthShader.setMat4f("model", false, glm::value_ptr(job.model));
+    glDrawElements(GL_TRIANGLES, model.getIndexDataSize(), GL_UNSIGNED_INT,
+                   (void*)0);
+  }
+}
+
 void BallRenderer::add(BallRenderJob job) { queue.push(job); }
 
-void BallRenderer::freeRenderer() {
-  shader.free();
-}
+void BallRenderer::freeRenderer() { shader.free(); }

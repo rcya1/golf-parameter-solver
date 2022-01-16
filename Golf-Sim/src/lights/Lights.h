@@ -23,6 +23,7 @@ struct DirLight {
   glm::vec3 ambient;
   glm::vec3 diffuse;
   glm::vec3 specular;
+  glm::mat4 lightSpaceMatrix; // can leave empty and then call generateLightSpaceMatrices
 };
 
 struct LightScene {
@@ -33,4 +34,5 @@ struct LightScene {
 void setLightScene(opengl::Shader& shader, LightScene& lightScene);
 PointLight createBasicPointLight(glm::vec3 position);
 DirLight createBasicDirLight(glm::vec3 direction);
+void generateLightSpaceMatrices(LightScene& lightScene);
 };  // namespace lights

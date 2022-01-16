@@ -15,6 +15,7 @@
 #include "util/plot/TimeMetrics.h"
 #include <terrain/TerrainRenderer.h>
 #include <goal/GoalRenderer.h>
+#include <util/opengl/DepthFrameBuffer.h>
 
 class AppLayer : public GLCore::Layer {
  public:
@@ -25,6 +26,7 @@ class AppLayer : public GLCore::Layer {
   virtual void OnDetach() override;
   virtual void OnEvent(GLCore::Event& event) override;
   virtual void update(GLCore::Timestep ts) override;
+  void render();
   virtual void imGuiRender() override;
 
  private:
@@ -33,6 +35,9 @@ class AppLayer : public GLCore::Layer {
 
   opengl::PerspectiveCameraController cameraController;
   lights::LightScene lightScene;
+
+  opengl::DepthFrameBuffer lightDepthFrameBuffer0;
+  opengl::Shader lightDepthShader;
 
   std::vector<Ball> balls;
   BallModel ballModel;

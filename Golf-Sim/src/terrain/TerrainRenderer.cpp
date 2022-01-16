@@ -36,6 +36,27 @@ void TerrainRenderer::render(opengl::PerspectiveCamera& camera,
   }
 }
 
+void TerrainRenderer::renderLightDepth(opengl::Shader& lightDepthShader,
+                                    lights::LightScene& lightScene,
+                                    int dirLightIndex) {
+  lightDepthShader.activate();
+  lightDepthShader.setMat4f(
+      "lightSpaceMatrix", false,
+      glm::value_ptr(lightScene.dirLights[dirLightIndex].lightSpaceMatrix));
+
+  while (queue.size()) {
+    TerrainRenderJob job = queue.front();
+    queue.pop();
+
+    job.model.getVertexArray()->bind();
+
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, job.position);
+    lightDepthShader.setMat4f("model", false, glm::value_ptr(model));
+    glDrawArrays(GL_TRIANGLES, 0, job.model.getNumVertices());
+  }
+}
+
 void TerrainRenderer::add(TerrainRenderJob job) { queue.push(job); }
 
 void TerrainRenderer::freeRenderer() { shader.free(); }

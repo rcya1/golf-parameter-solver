@@ -1,9 +1,10 @@
 #pragma once
 
-#include <queue>
-
 #include <goal/GoalModel.h>
 #include <util/opengl/Shader.h>
+
+#include <queue>
+
 #include "lights/Lights.h"
 #include "util/opengl/PerspectiveCamera.h"
 
@@ -19,6 +20,8 @@ class GoalRenderer {
 
   void render(opengl::PerspectiveCamera& camera,
               lights::LightScene& lightScene);
+  void renderLightDepth(opengl::Shader& lightDepthShader,
+                        lights::LightScene& lightScene, int dirLightIndex);
   void add(GoalRenderJob job);
   void freeRenderer();
 

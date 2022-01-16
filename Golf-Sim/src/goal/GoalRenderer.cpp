@@ -20,21 +20,38 @@ void GoalRenderer::render(opengl::PerspectiveCamera& camera,
     GoalRenderJob job = queue.front();
     queue.pop();
 
-    //job.model.getVertexArray()->bind();
+    // job.model.getVertexArray()->bind();
 
     shader.setVec3f("material.diffuse", job.color);
 
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, job.position);
     shader.setMat4f("model", false, glm::value_ptr(model));
-    //glDrawArrays(GL_TRIANGLES, 0, job.model.getNumVertices());
+    // glDrawArrays(GL_TRIANGLES, 0, job.model.getNumVertices());
   }
 }
 
-void GoalRenderer::add(GoalRenderJob job) {
-  queue.push(job);
+void GoalRenderer::renderLightDepth(opengl::Shader& lightDepthShader,
+                                    lights::LightScene& lightScene,
+                                    int dirLightIndex) {
+  lightDepthShader.activate();
+  lightDepthShader.setMat4f(
+      "lightSpaceMatrix", false,
+      glm::value_ptr(lightScene.dirLights[dirLightIndex].lightSpaceMatrix));
+
+  while (queue.size()) {
+    GoalRenderJob job = queue.front();
+    queue.pop();
+
+    job.model.getVertexArray()->bind();
+
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, job.position);
+    lightDepthShader.setMat4f("model", false, glm::value_ptr(model));
+    glDrawArrays(GL_TRIANGLES, 0, job.model.getNumVertices());
+  }
 }
 
-void GoalRenderer::freeRenderer() {
-  shader.free();
-}
+void GoalRenderer::add(GoalRenderJob job) { queue.push(job); }
+
+void GoalRenderer::freeRenderer() { shader.free(); }

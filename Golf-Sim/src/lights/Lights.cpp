@@ -25,6 +25,12 @@ void lights::setLightScene(opengl::Shader& shader,
     shader.setVec3f((prefix + ".ambient").c_str(), dirLight.ambient);
     shader.setVec3f((prefix + ".diffuse").c_str(), dirLight.diffuse);
     shader.setVec3f((prefix + ".specular").c_str(), dirLight.specular);
+
+    for (int i = 0; i < lightScene.dirLights.size(); i++) {
+      shader.setMat4f(("lightSpaceMatrix[" + std::to_string(i) + "]").c_str(),
+                      false,
+                      glm::value_ptr(lightScene.dirLights[i].lightSpaceMatrix));
+    }
   }
 }
 
@@ -40,5 +46,15 @@ lights::PointLight lights::createBasicPointLight(glm::vec3 position) {
 
 lights::DirLight lights::createBasicDirLight(glm::vec3 direction) {
   return DirLight{direction, glm::vec3(1.0f, 1.0f, 1.0f),
-                  glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f)};
+                  glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::mat4()};
+}
+
+void lights::generateLightSpaceMatrices(LightScene& lightScene) {
+  for (DirLight& dirLight : lightScene.dirLights) {
+    glm::vec3 direction = dirLight.direction;
+    dirLight.lightSpaceMatrix =
+        glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 7.5f) *
+        glm::lookAt(-direction, glm::vec3(0),
+                    glm::cross(direction, glm::vec3(-1.0f, 0.0f, 0.0f)));
+  }
 }

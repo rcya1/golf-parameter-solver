@@ -21,7 +21,10 @@ AppLayer::AppLayer(GLFWwindow* window)
       balls{Ball(-1.0, 5.0f, 0.0, 0.25, glm::vec3(0.808f, 0.471f, 0.408f)),
             Ball(1.0, 5.0f, 0.0, 0.25, glm::vec3(0.408f, 0.471f, 0.808f))},
       goal(0, 0, 0.5),
-      terrain(glm::vec3(0.0, -5.0, 0.0), 25, 25, 10.0f, 10.0f, 5.0f, 5.0f) {
+      terrain(glm::vec3(0.0, -5.0, 0.0), 25, 25, 10.0f, 10.0f, 5.0f, 5.0f),
+      lightDepthShader("assets/shaders/LightDepthVertexShader.vert",
+                       "assets/shaders/LightDepthFragmentShader.frag"),
+      lightDepthFrameBuffer0(1024, 1024) {
   lightScene = lights::LightScene{
       std::vector<lights::PointLight>{
           lights::createBasicPointLight(glm::vec3(25.0f, 25.0f, 25.0f)),
@@ -35,6 +38,7 @@ AppLayer::AppLayer(GLFWwindow* window)
       },
       std::vector<lights::DirLight>{
           lights::createBasicDirLight(glm::vec3(0.0f, -1.0f, 0.0f))}};
+  lights::generateLightSpaceMatrices(lightScene);
 
   goal.generateModel(terrain);
 
@@ -65,6 +69,9 @@ void AppLayer::OnDetach() {
   ballRenderer.freeRenderer();
   terrainRenderer.freeRenderer();
   goalRenderer.freeRenderer();
+
+  lightDepthFrameBuffer0.free();
+  lightDepthShader.free();
 
   for (Ball& ball : balls) {
     ball.removePhysics(physicsWorld, physicsCommon);
@@ -128,18 +135,39 @@ void AppLayer::update(Timestep ts) {
   }
   terrain.update(ts, interpolationFactor);
 
+  render();
+
+  timeMetrics.update(ts);
+}
+
+void AppLayer::render() {
   for (Ball& ball : balls) {
     ball.render(ballRenderer);
   }
-  ballRenderer.render(ballModel, cameraController.getCamera(), lightScene);
-
   terrain.render(terrainRenderer, goal.getPosition(), goal.getRadius());
-  terrainRenderer.render(cameraController.getCamera(), lightScene);
-
   goal.render(goalRenderer);
-  goalRenderer.render(cameraController.getCamera(), lightScene);
 
-  timeMetrics.update(ts);
+  lightDepthFrameBuffer0.prepareForCalculate();
+  ballRenderer.renderLightDepth(ballModel, lightDepthShader, lightScene, 0);
+  terrainRenderer.renderLightDepth(lightDepthShader, lightScene, 0);
+  goalRenderer.renderLightDepth(lightDepthShader, lightScene, 0);
+  lightDepthFrameBuffer0.unbind();
+
+  int width, height;
+  glfwGetWindowSize(window, &width, &height);
+  glViewport(0, 0, width, height);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  for (Ball& ball : balls) {
+    ball.render(ballRenderer);
+  }
+  terrain.render(terrainRenderer, goal.getPosition(), goal.getRadius());
+  goal.render(goalRenderer);
+
+  lightDepthFrameBuffer0.bindAsTexture();
+  ballRenderer.render(ballModel, cameraController.getCamera(), lightScene);
+  terrainRenderer.render(cameraController.getCamera(), lightScene);
+  goalRenderer.render(cameraController.getCamera(), lightScene);
 }
 
 void AppLayer::imGuiRender() {
