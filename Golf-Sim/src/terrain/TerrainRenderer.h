@@ -11,8 +11,10 @@ struct TerrainRenderJob {
   TerrainModel& model;
   glm::vec3 position;
   glm::vec3 color;
-  glm::vec2 goalPosition;
-  float goalRadius;
+  float goalLeft;
+  float goalRight;
+  float goalBottom;
+  float goalTop;
 };
 
 class TerrainRenderer {

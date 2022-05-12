@@ -1,24 +1,31 @@
 #include "Goal.h"
+
 #include <goal/GoalRenderer.h>
 
-Goal::Goal(float x, float z, float r) : position(x, z), radius(r) {}
+Goal::Goal(float x, float z, float r)
+    : position(x, z), radius(r), color(0.1f, 0.35f, 0.1f) {}
 
 void Goal::generateModel(Terrain& terrain) {
   freeModel();
 
-  goalModel.generateModel();
+  glm::vec2 terrain2DCoords =
+      glm::vec2(terrain.getPosition().x - terrain.getWidth() / 2,
+                terrain.getPosition().z - terrain.getHeight() / 2);
+  glm::vec2 relativeCoords = position - terrain2DCoords;
 
-  for(int i = 0; i < SECTOR_COUNT; i++) {
-    float sectorAngle = SECTOR_STEP * i;
-    float x = radius * cosf(sectorAngle);
-    float z = radius * sinf(sectorAngle);
+  if (relativeCoords.x + radius > terrain.getWidth() ||
+      relativeCoords.y + radius > terrain.getHeight() ||
+      relativeCoords.x < radius || relativeCoords.y < radius) {
+    assert(false);
   }
+
+  goalModel.generateModel(terrain, relativeCoords, radius);
 }
 
 void Goal::freeModel() { goalModel.freeModel(); }
 
 void Goal::render(GoalRenderer& renderer) {
-  //renderer.add(GoalRenderJob{goalModel});
+  renderer.add(GoalRenderJob{goalModel, color});
 }
 
 void Goal::addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,

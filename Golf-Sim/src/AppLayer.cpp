@@ -19,7 +19,8 @@ AppLayer::AppLayer(GLFWwindow* window)
       cameraController(glm::vec3(0, 5.0, 5.0), -90, 0, 45.0, 2.0 / 1.0, 3.0,
                        5.0, 0.1),
       balls{Ball(-1.0, 5.0f, 0.0, 0.25, glm::vec3(0.808f, 0.471f, 0.408f)),
-            Ball(1.0, 5.0f, 0.0, 0.25, glm::vec3(0.408f, 0.471f, 0.808f))},
+            Ball(1.0, 5.0f, 0.0, 0.25, glm::vec3(0.408f, 0.471f, 0.808f)),
+            Ball(0.0, 0.0, 0.0, 0.25, glm::vec3(1.0f, 0.0f, 0.0f))},
       goal(0, 0, 0.5),
       terrain(glm::vec3(0.0, -5.0, 0.0), 25, 25, 10.0f, 10.0f, 5.0f, 5.0f),
       lightDepthShader("assets/shaders/LightDepthVertexShader.vert",
@@ -141,21 +142,24 @@ void AppLayer::update(Timestep ts) {
 }
 
 void AppLayer::render() {
-  for (Ball& ball : balls) {
-    ball.render(ballRenderer);
-  }
-  terrain.render(terrainRenderer, goal.getPosition(), goal.getRadius());
-  goal.render(goalRenderer);
-
   lightDepthFrameBuffer0.prepareForCalculate();
-  ballRenderer.renderLightDepth(ballModel, lightDepthShader, lightScene, 0);
-  terrainRenderer.renderLightDepth(lightDepthShader, lightScene, 0);
-  goalRenderer.renderLightDepth(lightDepthShader, lightScene, 0);
+  if (renderShadows) {
+    for (Ball& ball : balls) {
+      ball.render(ballRenderer);
+    }
+    //terrain.render(terrainRenderer, goal.getPosition(), goal.getRadius());
+    //goal.render(goalRenderer);
+
+    ballRenderer.renderLightDepth(ballModel, lightDepthShader, lightScene, 0);
+    //terrainRenderer.renderLightDepth(lightDepthShader, lightScene, 0);
+    //goalRenderer.renderLightDepth(lightDepthShader, lightScene, 0);
+  }
   lightDepthFrameBuffer0.unbind();
 
   int width, height;
   glfwGetWindowSize(window, &width, &height);
   glViewport(0, 0, width, height);
+  glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   for (Ball& ball : balls) {
@@ -188,4 +192,8 @@ void AppLayer::imGuiRender() {
 
   terrain.imGuiRender(physicsWorld, physicsCommon);
   timeMetrics.imGuiRender();
+
+  ImGui::Begin("Rendering");
+  ImGui::Checkbox("Shadows", &renderShadows);
+  ImGui::End();
 }

@@ -2,6 +2,7 @@
 #include "GLCore.h"
 #include "GLFW/glfw3.h"
 #include "implot.h"
+#include <iostream>
 
 using namespace GLCore;
 

@@ -39,16 +39,13 @@ void Terrain::generateModel() {
 
   heightMap = std::vector<float>((numRows + 1) * (numCols + 1));
 
-  const float hSpacing = this->mapWidth / numCols;
-  const float vSpacing = this->mapHeight / numRows;
-
   minHeight = -noiseAmp;
   maxHeight = noiseAmp;
 
   for (int j = 0; j <= numCols; j++) {
     for (int i = 0; i <= numRows; i++) {
-      float x = j * hSpacing - this->mapWidth / 2;
-      float z = i * vSpacing - this->mapHeight / 2;
+      float x = j * getHSpacing() - this->mapWidth / 2;
+      float z = i * getVSpacing() - this->mapHeight / 2;
 
       // float height = noiseAmp;
       // float height = (x * x + z * z) / 10.0;
@@ -57,6 +54,18 @@ void Terrain::generateModel() {
       heightMap[i * (static_cast<long long>(numCols) + 1) + j] = height;
     }
   }
+
+  //std::cout << std::fixed;
+  //std::cout << std::setprecision(3);
+  //for (int i = 0; i <= numRows; i++) {
+  //  for(int j = 0; j <= numCols; j++) {
+  //    float val = heightMap[i * (static_cast<long long>(numCols) + 1) +
+  //                          j];
+  //    if (val >= 0) std::cout << " ";
+  //    std::cout << val << " ";
+  //  }
+  //  std::cout << std::endl;
+  //}
 
   terrainModel.generateModel(&heightMap, numCols, numRows, mapWidth, mapHeight);
 }
@@ -74,8 +83,17 @@ void Terrain::update(GLCore::Timestep ts, float interpolationFactor) {
 
 void Terrain::render(TerrainRenderer& renderer, glm::vec2 goalPos,
                      float goalRadius) {
-  renderer.add(
-      TerrainRenderJob{terrainModel, position, color, goalPos, goalRadius});
+  float l = goalPos.x - goalRadius;
+  float r = goalPos.x + goalRadius;
+  float b = goalPos.y - goalRadius;
+  float t = goalPos.y + goalRadius;
+
+  // generate bounding box
+  float rl = static_cast<int>(floorf(l / getHSpacing())) * getHSpacing();
+  float rr = static_cast<int>(ceilf(r / getHSpacing())) * getHSpacing();
+  float rb = static_cast<int>(floorf(b / getVSpacing())) * getVSpacing();
+  float rt = static_cast<int>(ceilf(t / getVSpacing())) * getVSpacing();
+  renderer.add(TerrainRenderJob{terrainModel, position, color, rl, rr, rb, rt});
 }
 
 void Terrain::imGuiRender(reactphysics3d::PhysicsWorld* physicsWorld,

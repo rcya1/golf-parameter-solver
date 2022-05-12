@@ -144,8 +144,11 @@ void Ball::addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
 
 void Ball::removePhysics(reactphysics3d::PhysicsWorld* physicsWorld,
                          reactphysics3d::PhysicsCommon& physicsCommon) {
+  if(!hasPhysics()) return;
+
   physicsWorld->destroyRigidBody(this->rigidBody);
   physicsCommon.destroySphereShape(this->sphereShape);
+
   this->rigidBody = nullptr;
   this->collider = nullptr;
   this->sphereShape = nullptr;

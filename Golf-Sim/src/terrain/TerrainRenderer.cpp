@@ -19,16 +19,18 @@ void TerrainRenderer::render(opengl::PerspectiveCamera& camera,
 
   lights::setLightScene(shader, lightScene);
 
-  while(queue.size()) {
+  while (queue.size()) {
     TerrainRenderJob job = queue.front();
     queue.pop();
 
     job.model.getVertexArray()->bind();
 
     shader.setVec3f("material.diffuse", job.color);
-    shader.setVec2f("goalPos", job.goalPosition);
-    shader.setFloat("goalRadius", job.goalRadius);
-    
+    shader.setFloat("goal.left", job.goalLeft);
+    shader.setFloat("goal.right", job.goalRight);
+    shader.setFloat("goal.top", job.goalTop);
+    shader.setFloat("goal.bottom", job.goalBottom);
+
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, job.position);
     shader.setMat4f("model", false, glm::value_ptr(model));
@@ -37,8 +39,8 @@ void TerrainRenderer::render(opengl::PerspectiveCamera& camera,
 }
 
 void TerrainRenderer::renderLightDepth(opengl::Shader& lightDepthShader,
-                                    lights::LightScene& lightScene,
-                                    int dirLightIndex) {
+                                       lights::LightScene& lightScene,
+                                       int dirLightIndex) {
   lightDepthShader.activate();
   lightDepthShader.setMat4f(
       "lightSpaceMatrix", false,

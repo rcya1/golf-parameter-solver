@@ -30,6 +30,7 @@ class Goal {
  private:
   glm::vec2 position;
   float radius;
+  glm::vec3 color;
 
   GoalModel goalModel;
 };

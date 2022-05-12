@@ -20,14 +20,16 @@ void GoalRenderer::render(opengl::PerspectiveCamera& camera,
     GoalRenderJob job = queue.front();
     queue.pop();
 
-    // job.model.getVertexArray()->bind();
+    job.model.getVertexArray()->bind();
 
     shader.setVec3f("material.diffuse", job.color);
 
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, job.position);
+    model = glm::translate(model, job.model.getPosition());
     shader.setMat4f("model", false, glm::value_ptr(model));
-    // glDrawArrays(GL_TRIANGLES, 0, job.model.getNumVertices());
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glDrawArrays(GL_TRIANGLES, 0, job.model.getNumVertices());
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
 }
 
@@ -46,7 +48,7 @@ void GoalRenderer::renderLightDepth(opengl::Shader& lightDepthShader,
     job.model.getVertexArray()->bind();
 
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, job.position);
+    model = glm::translate(model, job.model.getPosition());
     lightDepthShader.setMat4f("model", false, glm::value_ptr(model));
     glDrawArrays(GL_TRIANGLES, 0, job.model.getNumVertices());
   }

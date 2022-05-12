@@ -32,7 +32,17 @@ class Terrain {
   void removePhysics(reactphysics3d::PhysicsWorld* physicsWorld,
                      reactphysics3d::PhysicsCommon& physicsCommon);
 
+  float getHeight(int col, int row) { return heightMap[row * (numRows + 1) + col]; };
+
   glm::vec3 getPosition() { return position; }
+  float getWidth() { return mapWidth; }
+  float getHeight() { return mapHeight; }
+
+  int getNumRows() { return numRows; }
+  int getNumCols() { return numCols; }
+
+  float getHSpacing() { return this->mapWidth / numCols; }
+  float getVSpacing() { return this->mapHeight / numRows; }
 
   float getMinHeight() { return minHeight; }
 

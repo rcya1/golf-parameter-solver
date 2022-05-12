@@ -56,4 +56,6 @@ class AppLayer : public GLCore::Layer {
   bool justStartedPhysics = true;
   reactphysics3d::PhysicsCommon physicsCommon;
   reactphysics3d::PhysicsWorld* physicsWorld;
+
+  bool renderShadows = false;
 };

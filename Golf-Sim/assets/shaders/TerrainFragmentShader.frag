@@ -74,13 +74,20 @@ float ShadowCalculation(vec3 normal, vec3 lightDir, vec4 fragPosLightSpace, int 
     return shadow;
 }
 
-uniform vec2 goalPos;
-uniform float goalRadius;
+struct Goal {
+	float left;
+	float right;
+	float top;
+	float bottom;
+};
+
+uniform Goal goal;
 
 void main() {
-	if((goalPos.x - FragPos.x) * (goalPos.x - FragPos.x) + 
-	   (goalPos.y - FragPos.z) * (goalPos.y - FragPos.z) < goalRadius * goalRadius) {
-		discard;
+	if(FragPos.x >= goal.left && FragPos.x <= goal.right) {
+		if(FragPos.z >= goal.bottom && FragPos.z <= goal.top) {
+			discard;
+		}
 	}
 
 	vec3 norm = normalize(Normal);
