@@ -83,16 +83,23 @@ void Terrain::update(GLCore::Timestep ts, float interpolationFactor) {
 
 void Terrain::render(TerrainRenderer& renderer, glm::vec2 goalPos,
                      float goalRadius) {
-  float l = goalPos.x - goalRadius;
-  float r = goalPos.x + goalRadius;
-  float b = goalPos.y - goalRadius;
-  float t = goalPos.y + goalRadius;
+  float grx = goalPos.x - position.x + mapWidth / 2.0;
+  float gry = goalPos.y - position.z + mapHeight / 2.0;
+
+  float l = grx - goalRadius;
+  float r = grx + goalRadius;
+  float b = gry - goalRadius;
+  float t = gry + goalRadius;
 
   // generate bounding box
-  float rl = static_cast<int>(floorf(l / getHSpacing())) * getHSpacing();
-  float rr = static_cast<int>(ceilf(r / getHSpacing())) * getHSpacing();
-  float rb = static_cast<int>(floorf(b / getVSpacing())) * getVSpacing();
-  float rt = static_cast<int>(ceilf(t / getVSpacing())) * getVSpacing();
+  float rl = static_cast<int>(floorf(l / getHSpacing())) * getHSpacing() + 
+             position.x - mapWidth / 2.0;
+  float rr = static_cast<int>(ceilf(r / getHSpacing())) * getHSpacing() +
+             position.x - mapWidth / 2.0;
+  float rb = static_cast<int>(floorf(b / getVSpacing())) * getVSpacing() +
+             position.z - mapHeight / 2.0;
+  float rt = static_cast<int>(ceilf(t / getVSpacing())) * getVSpacing() +
+             position.z - mapHeight / 2.0;
   renderer.add(TerrainRenderJob{terrainModel, position, color, rl, rr, rb, rt});
 }
 

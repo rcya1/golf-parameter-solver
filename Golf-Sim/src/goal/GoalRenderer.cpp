@@ -27,9 +27,9 @@ void GoalRenderer::render(opengl::PerspectiveCamera& camera,
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, job.model.getPosition());
     shader.setMat4f("model", false, glm::value_ptr(model));
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glDrawArrays(GL_TRIANGLES, 0, job.model.getNumVertices());
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
 }
 
