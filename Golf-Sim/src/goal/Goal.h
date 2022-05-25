@@ -18,17 +18,20 @@ class Goal {
   void freeModel();
 
   void render(GoalRenderer& renderer);
+  void imGuiRender(reactphysics3d::PhysicsWorld* physicsWorld,
+    reactphysics3d::PhysicsCommon& physicsCommon, Terrain& terrain);
 
   void addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
                   reactphysics3d::PhysicsCommon& physicsCommon);
   void removePhysics(reactphysics3d::PhysicsWorld* physicsWorld,
                      reactphysics3d::PhysicsCommon& physicsCommon);
 
-  glm::vec2 getPosition() { return position; }
+  glm::vec2 getRelativePosition() { return relativePosition; }
+  glm::vec2 getAbsolutePosition(Terrain& terrain);
   float getRadius() { return radius; }
 
  private:
-  glm::vec2 position;
+  glm::vec2 relativePosition;
   float radius;
   glm::vec3 color;
 

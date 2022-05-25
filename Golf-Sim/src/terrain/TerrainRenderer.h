@@ -27,6 +27,7 @@ class TerrainRenderer {
                         lights::LightScene& lightScene, int dirLightIndex);
   void add(TerrainRenderJob job);
   void freeRenderer();
+  void reloadShader() { shader.load(); }
 
  private:
   opengl::Shader shader;

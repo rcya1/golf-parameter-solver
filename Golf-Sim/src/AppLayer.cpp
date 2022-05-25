@@ -18,14 +18,17 @@ AppLayer::AppLayer(GLFWwindow* window)
     : window(window),
       cameraController(glm::vec3(0, 5.0, 5.0), -90, 0, 45.0, 2.0 / 1.0, 3.0,
                        5.0, 0.1),
-      balls{Ball(-1.0, 5.0f, 0.0, 0.05, glm::vec3(0.808f, 0.471f, 0.408f)),
-            Ball(1.0, 5.0f, 0.0, 0.05, glm::vec3(0.408f, 0.471f, 0.808f)),
-            Ball(0.0, 0.0, 0.0, 0.05, glm::vec3(1.0f, 0.0f, 0.0f))},
-      goal(0, 0, 0.5),
+      balls{Ball(-1.0, 5.0f, 0.0, 0.25, glm::vec3(0.808f, 0.471f, 0.408f)),
+            Ball(1.0, 5.0f, 0.0, 0.25, glm::vec3(0.408f, 0.471f, 0.808f)),
+            Ball(0.0, 0.0, 0.0, 0.25, glm::vec3(1.0f, 0.0f, 0.0f))},
+      goal(0.5, 0.5, 0.5),
       terrain(glm::vec3(0.0, -5.0, 0.0), 25, 25, 10.0f, 10.0f, 5.0f, 5.0f),
       lightDepthShader("assets/shaders/LightDepthVertexShader.vert",
                        "assets/shaders/LightDepthFragmentShader.frag"),
-      lightDepthFrameBuffer0(1024, 1024) {
+      lightDepthFrameBuffer0(1024, 1024),
+      addBallPosition(-1.0, 5.0f, 0.0),
+      addBallRadius(0.25),
+      addBallColor(0.808f, 0.471f, 0.408f) {
   lightScene = lights::LightScene{
       std::vector<lights::PointLight>{
           lights::createBasicPointLight(glm::vec3(25.0f, 25.0f, 25.0f)),
@@ -125,14 +128,12 @@ void AppLayer::update(Timestep ts) {
 
   float interpolationFactor =
       physicsRunning ? physicsAccumulatedTime / desiredPhysicsTimeStep : 0;
+  while (!ballsAdd.empty()) {
+    balls.push_back(ballsAdd.front());
+    ballsAdd.pop();
+  }
   for (Ball& ball : balls) {
-    ball.update(ts, goal, interpolationFactor);
-    if (ball.hasPhysics() &&
-        ball.getPosition().y <
-            terrain.getPosition().y + terrain.getMinHeight()) {
-      ball.setState(BallState::OUT_OF_BOUNDS);
-      ball.removePhysics(physicsWorld, physicsCommon);
-    }
+    ball.update(ts, terrain, goal, physicsWorld, physicsCommon, interpolationFactor);
   }
   terrain.update(ts, interpolationFactor);
 
@@ -147,12 +148,8 @@ void AppLayer::render() {
     for (Ball& ball : balls) {
       ball.render(ballRenderer);
     }
-    //terrain.render(terrainRenderer, goal.getPosition(), goal.getRadius());
-    //goal.render(goalRenderer);
 
     ballRenderer.renderLightDepth(ballModel, lightDepthShader, lightScene, 0);
-    //terrainRenderer.renderLightDepth(lightDepthShader, lightScene, 0);
-    //goalRenderer.renderLightDepth(lightDepthShader, lightScene, 0);
   }
   lightDepthFrameBuffer0.unbind();
 
@@ -165,7 +162,7 @@ void AppLayer::render() {
   for (Ball& ball : balls) {
     ball.render(ballRenderer);
   }
-  terrain.render(terrainRenderer, goal.getPosition(), goal.getRadius());
+  terrain.render(terrainRenderer, goal.getAbsolutePosition(terrain), goal.getRadius());
   goal.render(goalRenderer);
 
   lightDepthFrameBuffer0.bindAsTexture();
@@ -186,14 +183,35 @@ void AppLayer::imGuiRender() {
 
   ImGui::Begin("Balls");
   for (int i = 0; i < balls.size(); i++) {
-    balls[i].imGuiRender(i);
+    balls[i].imGuiRender(i, physicsWorld, physicsCommon);
   }
+  ImGui::Begin("Add Ball");
+  ImGui::DragFloat3("Position", glm::value_ptr(addBallPosition), 1.0f, -10.0f,
+    10.0f);
+  ImGui::DragFloat("Radius", &addBallRadius, 0.01f, 0.01f, 2.0f);
+  ImGui::ColorEdit3("Color", glm::value_ptr(addBallColor));
+  ImGui::Checkbox("Has Physics", &addBallHasPhysics);
+  if (ImGui::Button("Add")) {
+    Ball ball = Ball(addBallPosition.x, addBallPosition.y, addBallPosition.z, addBallRadius, addBallColor);
+    if (addBallHasPhysics) {
+      ball.addPhysics(physicsWorld, physicsCommon);
+    }
+    ballsAdd.push(ball);
+  }
+  ImGui::End();
   ImGui::End();
 
   terrain.imGuiRender(physicsWorld, physicsCommon);
+  goal.imGuiRender(physicsWorld, physicsCommon, terrain);
   timeMetrics.imGuiRender();
 
   ImGui::Begin("Rendering");
   ImGui::Checkbox("Shadows", &renderShadows);
+  if (ImGui::Button("Reload Shaders")) {
+    lightDepthShader.load();
+    ballRenderer.reloadShader();
+    goalRenderer.reloadShader();
+    terrainRenderer.reloadShader();
+  }
   ImGui::End();
 }

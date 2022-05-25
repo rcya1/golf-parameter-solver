@@ -50,13 +50,15 @@ void PerspectiveCameraController::update(GLCore::Timestep ts) {
 void PerspectiveCameraController::OnEvent(GLCore::Event& e,
                                           bool isCursorControllingCamera) {
   GLCore::EventDispatcher dispatcher(e);
-  dispatcher.Dispatch<GLCore::MouseScrolledEvent>(
-      GLCORE_BIND_EVENT_FN(PerspectiveCameraController::OnMouseScrolled));
   dispatcher.Dispatch<GLCore::WindowResizeEvent>(
       GLCORE_BIND_EVENT_FN(PerspectiveCameraController::OnWindowResized));
-  if (isCursorControllingCamera)
+
+  if (isCursorControllingCamera) {
+    dispatcher.Dispatch<GLCore::MouseScrolledEvent>(
+      GLCORE_BIND_EVENT_FN(PerspectiveCameraController::OnMouseScrolled));
     dispatcher.Dispatch<GLCore::MouseMovedEvent>(
-        GLCORE_BIND_EVENT_FN(PerspectiveCameraController::OnMouseMoved));
+      GLCORE_BIND_EVENT_FN(PerspectiveCameraController::OnMouseMoved));
+  }
   else {
     firstMouse = true;
   }

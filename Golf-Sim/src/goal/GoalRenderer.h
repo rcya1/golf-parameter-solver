@@ -23,6 +23,7 @@ class GoalRenderer {
                         lights::LightScene& lightScene, int dirLightIndex);
   void add(GoalRenderJob job);
   void freeRenderer();
+  void reloadShader() { shader.load(); }
 
  private:
   opengl::Shader shader;

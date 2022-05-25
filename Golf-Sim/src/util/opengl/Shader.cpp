@@ -8,7 +8,12 @@
 
 namespace opengl {
 Shader::Shader(const char* vertexPath, const char* fragmentPath,
-               const char* geometryPath) {
+               const char* geometryPath)
+    : vertexPath(vertexPath), fragmentPath(fragmentPath), geometryPath(geometryPath) {
+  load();
+}
+
+void Shader::load() {
   std::string vertexCode;
   std::string fragmentCode;
 
@@ -44,8 +49,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath,
     std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
               << vertexInfoLog << std::endl;
   } else {
-    LOG_INFO("Compiled vertex shader from " + std::string(vertexPath) +
-             "!");
+    LOG_INFO("Compiled vertex shader from " + std::string(vertexPath) + "!");
   }
 
   unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);

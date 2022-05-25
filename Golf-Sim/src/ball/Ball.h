@@ -12,9 +12,11 @@ class Ball {
   Ball();
   Ball(float x, float y, float z, float r, glm::vec3 color);
 
-  void update(GLCore::Timestep ts, Goal& goal, float interpolationFactor = -1);
+  void update(GLCore::Timestep ts, Terrain& terrain, Goal& goal, reactphysics3d::PhysicsWorld* physicsWorld,
+    reactphysics3d::PhysicsCommon& physicsCommon, float interpolationFactor = -1);
   void render(BallRenderer& renderer);
-  void imGuiRender(int index);
+  void imGuiRender(int index, reactphysics3d::PhysicsWorld* physicsWorld,
+    reactphysics3d::PhysicsCommon& physicsCommon);
 
   void addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
                   reactphysics3d::PhysicsCommon& physicsCommon);
@@ -25,6 +27,7 @@ class Ball {
   void setState(BallState state) { this->state = state; }
   glm::vec3 getPosition() { return position; }
   bool hasPhysics() { return rigidBody != nullptr; }
+  bool isOutOfBounds(Terrain& terrain) { return position.y < terrain.getPosition().y + terrain.getMinHeight(); }
 
  private:
   glm::vec3 position;

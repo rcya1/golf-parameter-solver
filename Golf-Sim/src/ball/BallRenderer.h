@@ -25,6 +25,7 @@ class BallRenderer {
                         lights::LightScene& lightScene, int dirLightIndex);
   void add(BallRenderJob job);
   void freeRenderer();
+  void reloadShader() { shader.load(); }
 
  private:
   opengl::Shader shader;

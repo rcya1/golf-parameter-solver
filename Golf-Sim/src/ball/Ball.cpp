@@ -15,10 +15,27 @@ Ball::Ball(float x, float y, float z, float r, glm::vec3 color)
       radius(r),
       color(color),
       state(BallState::ACTIVE),
-      nearGoal(false) {}
+      nearGoal(false),
+      rigidBody(nullptr) {}
 
-void Ball::update(GLCore::Timestep ts, Goal& goal, float interpolationFactor) {
+void Ball::update(GLCore::Timestep ts, Terrain& terrain, Goal& goal,
+                  reactphysics3d::PhysicsWorld* physicsWorld,
+                  reactphysics3d::PhysicsCommon& physicsCommon,
+                  float interpolationFactor) {
+  if (!isOutOfBounds(terrain) && state == BallState::OUT_OF_BOUNDS) {
+    if (!hasPhysics()) {
+      addPhysics(physicsWorld, physicsCommon);
+    }
+    state = BallState::ACTIVE;
+  }
+
   if (!hasPhysics() || interpolationFactor == -1) {
+    return;
+  }
+
+  if (isOutOfBounds(terrain) && hasPhysics()) {
+    state = BallState::OUT_OF_BOUNDS;
+    removePhysics(physicsWorld, physicsCommon);
     return;
   }
 
@@ -41,12 +58,15 @@ void Ball::update(GLCore::Timestep ts, Goal& goal, float interpolationFactor) {
                        interpolatedTransform.getPosition().y,
                        interpolatedTransform.getPosition().z);
 
-  float goalDx = currTransform.getPosition().x - goal.getPosition().x;
-  float goalDz = currTransform.getPosition().z - goal.getPosition().y;
+  float goalDx =
+      currTransform.getPosition().x - goal.getAbsolutePosition(terrain).x;
+  float goalDz =
+      currTransform.getPosition().z - goal.getAbsolutePosition(terrain).y;
   float switchRadius = goal.getRadius() + radius;
-  bool newNearGoal = goalDx * goalDx + goalDz * goalDz < switchRadius *
-                                                             switchRadius;
-  // have to remove and add the collider because otherwise sometimes it doesn't update properly
+  bool newNearGoal =
+      goalDx * goalDx + goalDz * goalDz < switchRadius * switchRadius;
+  // have to remove and add the collider because otherwise sometimes it doesn't
+  // update properly
   if (!nearGoal && newNearGoal) {
     this->rigidBody->removeCollider(this->collider);
     this->collider = this->rigidBody->addCollider(
@@ -71,7 +91,8 @@ void Ball::render(BallRenderer& renderer) {
   renderer.add(BallRenderJob{model, color});
 }
 
-void Ball::imGuiRender(int index) {
+void Ball::imGuiRender(int index, reactphysics3d::PhysicsWorld* physicsWorld,
+                       reactphysics3d::PhysicsCommon& physicsCommon) {
   ImGui::PushID(index);
   ImGui::AlignTextToFramePadding();
 
@@ -109,11 +130,36 @@ void Ball::imGuiRender(int index) {
         prevTransform = newTransform;
       }
     }
+    if (ImGui::DragFloat("Radius", &radius, 0.01f, 0.01f, 2.0f)) {
+      if (hasPhysics()) {
+        removePhysics(physicsWorld, physicsCommon);
+        addPhysics(physicsWorld, physicsCommon);
+      }
+    }
     ImGui::ColorEdit3("Color", glm::value_ptr(color));
     if (nearGoal) {
       ImGui::Text("Near Goal");
     }
-    if (this->collider != nullptr)
+
+    if (!hasPhysics()) {
+      bool addPhysicsDisabled = state == BallState::OUT_OF_BOUNDS;
+      if (addPhysicsDisabled) {
+        ImGui::BeginDisabled();
+      }
+
+      if (ImGui::Button("Add Physics")) {
+        addPhysics(physicsWorld, physicsCommon);
+      }
+      if (addPhysicsDisabled) {
+        ImGui::EndDisabled();
+      }
+    } else {
+      if (ImGui::Button("Remove Physics")) {
+        removePhysics(physicsWorld, physicsCommon);
+      }
+    }
+
+    if (hasPhysics() && this->collider != nullptr)
       ImGui::Text(
           std::to_string(this->collider->getCollideWithMaskBits()).c_str());
 
@@ -137,14 +183,15 @@ void Ball::addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
 
   this->sphereShape = physicsCommon.createSphereShape(radius);
 
-  this->collider = this->rigidBody->addCollider(sphereShape, reactphysics3d::Transform::identity());
+  this->collider = this->rigidBody->addCollider(
+      sphereShape, reactphysics3d::Transform::identity());
   this->collider->setCollisionCategoryBits(CollisionCategory::BALL);
   this->collider->setCollideWithMaskBits(CollisionCategory::TERRAIN);
 }
 
 void Ball::removePhysics(reactphysics3d::PhysicsWorld* physicsWorld,
                          reactphysics3d::PhysicsCommon& physicsCommon) {
-  if(!hasPhysics()) return;
+  if (!hasPhysics()) return;
 
   physicsWorld->destroyRigidBody(this->rigidBody);
   physicsCommon.destroySphereShape(this->sphereShape);

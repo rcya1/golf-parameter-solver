@@ -9,6 +9,7 @@ class Shader {
 
   Shader(const char* vertexPath, const char* fragmentPath,
          const char* geometryPath = nullptr);
+  void load();
   void free();
   void activate() const;
   void setBool(const char* name, bool value) const;
@@ -22,5 +23,10 @@ class Shader {
                 float value4);
   void setMat3f(const char* name, bool transpose, const glm::f32* value);
   void setMat4f(const char* name, bool transpose, const glm::f32* value);
+
+ private:
+  const char* vertexPath;
+  const char* fragmentPath;
+  const char* geometryPath;
 };
 }  // namespace opengl

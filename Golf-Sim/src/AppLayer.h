@@ -40,8 +40,14 @@ class AppLayer : public GLCore::Layer {
   opengl::Shader lightDepthShader;
 
   std::vector<Ball> balls;
+  std::queue<Ball> ballsAdd;
   BallModel ballModel;
   BallRenderer ballRenderer;
+
+  glm::vec3 addBallPosition;
+  float addBallRadius;
+  glm::vec3 addBallColor;
+  bool addBallHasPhysics;
 
   Terrain terrain;
   TerrainRenderer terrainRenderer;
