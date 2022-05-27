@@ -1,12 +1,18 @@
 #pragma once
 
 #include <goal/GoalModel.h>
+
 #include <util/opengl/Shader.h>
 
 #include <queue>
 
-#include "lights/Lights.h"
-#include "util/opengl/PerspectiveCamera.h"
+namespace opengl {
+class PerspectiveCamera;
+}
+
+namespace lights {
+class LightScene;
+}
 
 struct GoalRenderJob {
   GoalModel& model;

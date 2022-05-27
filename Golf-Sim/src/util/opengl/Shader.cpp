@@ -9,7 +9,9 @@
 namespace opengl {
 Shader::Shader(const char* vertexPath, const char* fragmentPath,
                const char* geometryPath)
-    : vertexPath(vertexPath), fragmentPath(fragmentPath), geometryPath(geometryPath) {
+    : vertexPath(vertexPath),
+      fragmentPath(fragmentPath),
+      geometryPath(geometryPath) {
   load();
 }
 

@@ -1,15 +1,15 @@
 #include "BallRenderer.h"
 
-#include <GLCoreUtils.h>
+#include "BallModel.h"
+#include "lights/Lights.h"
+#include "util/opengl/PerspectiveCamera.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <iostream>
+#include <glad/glad.h>
 
-#include "BallModel.h"
-#include "lights/Lights.h"
-#include "util/opengl/PerspectiveCamera.h"
+#include <iostream>
 
 BallRenderer::BallRenderer()
     : shader("assets/shaders/BallVertexShader.vert",

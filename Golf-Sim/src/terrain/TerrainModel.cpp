@@ -1,11 +1,18 @@
 #include "TerrainModel.h"
 
-#include <GLCore.h>
+#include "util/opengl/VertexArray.h"
+#include "util/opengl/VertexBuffer.h"
+
+#include <glad/glad.h>
+#include <glm/glm.hpp>
+
+#include <memory>
 
 TerrainModel::TerrainModel() {}
 
 void TerrainModel::generateModel(std::vector<float>* heightMap, int numCols,
-                                 int numRows, float mapWidth, float mapHeight) {
+                                 int numRows, float mapWidth, float mapHeight,
+                                 glm::vec2 goalPos, float goalRadius) {
   this->heightMap = heightMap;
   this->numCols = numCols;
   this->numRows = numRows;
@@ -14,8 +21,31 @@ void TerrainModel::generateModel(std::vector<float>* heightMap, int numCols,
 
   freeModel();
 
+  float gx = goalRadius + goalPos.x * (mapWidth - 2 * goalRadius);
+  float gy = goalRadius + goalPos.y * (mapHeight- 2 * goalRadius);
+
+  float l = gx - goalRadius;
+  float r = gx + goalRadius;
+  float b = gy - goalRadius;
+  float t = gy + goalRadius;
+
+  float hSpacing = mapWidth / numCols;
+  float vSpacing = mapHeight / numRows;
+
+  // generate bounding box
+  int bl = static_cast<int>(floorf(l / hSpacing));
+  int br = static_cast<int>(ceilf(r / hSpacing));
+  int bb = static_cast<int>(floorf(b / vSpacing));
+  int bt = static_cast<int>(ceilf(t / vSpacing));
+
+  printf("%d %d %d %d", bl, br, bb, bt);
+
   for (int j = 0; j < numCols; j++) {
     for (int i = 0; i < numRows; i++) {
+      if (j >= bl && j < br && i >= bb && i < bt) {
+        continue;
+      }
+
       int topLeft = i * (numCols + 1) + j;
       int topRight = (i + 1) * (numCols + 1) + j;
       int botLeft = i * (numCols + 1) + j + 1;

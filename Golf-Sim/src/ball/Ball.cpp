@@ -1,11 +1,14 @@
 #include "Ball.h"
 
-#include <GLCoreUtils.h>
+#include "terrain/Terrain.h"
+#include "goal/Goal.h"
+#include "BallRenderer.h"
+
+#include "util/CollisionCategory.h"
+
+#include <imgui.h>
 
 #include <iostream>
-
-#include "BallRenderer.h"
-#include "util/CollisionCategory.h"
 
 Ball::Ball()
     : Ball(0.0f, 0.0f, 0.0f, 1.0f, glm::vec3(0.808f, 0.471f, 0.408f)) {}
@@ -204,4 +207,8 @@ void Ball::removePhysics(reactphysics3d::PhysicsWorld* physicsWorld,
 void Ball::setVelocity(glm::vec3 velocity) {
   this->rigidBody->setLinearVelocity(
       reactphysics3d::Vector3(velocity.x, velocity.y, velocity.z));
+}
+
+bool Ball::isOutOfBounds(Terrain& terrain) {
+  return position.y < terrain.getPosition().y + terrain.getMinHeight();
 }

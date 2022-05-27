@@ -10,27 +10,13 @@ class PerspectiveCamera {
                     float aspectRatio);
 
   void recalculateMatrices();
+  glm::f32* getViewMatrix();
+  glm::f32* getProjectionMatrix();
 
-  void setPos(glm::vec3& cameraPos) {
-    this->cameraPos = cameraPos;
-    recalculateMatrices();
-  }
-  void setRotation(float yaw, float pitch) {
-    this->yaw = yaw;
-    this->pitch = pitch;
-    recalculateMatrices();
-  }
-  void setFOV(float fov) {
-    this->fov = fov;
-    recalculateMatrices();
-  }
-  void setAspectRatio(float aspectRatio) {
-    this->aspectRatio = aspectRatio;
-    recalculateMatrices();
-  }
-
-  glm::f32* getViewMatrix() { return glm::value_ptr(view); }
-  glm::f32* getProjectionMatrix() { return glm::value_ptr(projection); }
+  void setPos(glm::vec3& cameraPos);
+  void setRotation(float yaw, float pitch);
+  void setFOV(float fov);
+  void setAspectRatio(float aspectRatio);
 
   glm::vec3 getPos() { return cameraPos; }
   glm::vec3 getFront() { return cameraFront; }

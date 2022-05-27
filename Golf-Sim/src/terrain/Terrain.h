@@ -1,30 +1,27 @@
 #pragma once
 
-#include <GLCore.h>
-#include <reactphysics3d/reactphysics3d.h>
-#include <terrain/TerrainModel.h>
+#include "terrain/TerrainModel.h"
 
-#include <memory>
+#include <GlCore.h>
+#include <glm/glm.hpp>
+#include <reactphysics3d/reactphysics3d.h>
+
 #include <vector>
 
-#include "terrain/TerrainRenderer.h"
 
-#include "lights/Lights.h"
-#include "util/opengl/PerspectiveCamera.h"
-#include "util/opengl/Shader.h"
-#include "util/opengl/VertexArray.h"
-#include "util/opengl/VertexBuffer.h"
+class Goal;
+class TerrainRenderer;
 
 class Terrain {
  public:
   Terrain(glm::vec3 position, int numHorizontal, int numVertical,
           float mapWidth, float mapHeight, float noiseFreq, float noiseAmp);
-  void generateModel();
+  void generateModel(Goal& goal);
   void freeModel();
 
   void update(GLCore::Timestep ts, float interpolationFactor = -1);
-  void render(TerrainRenderer& renderer, glm::vec2 goalPos, float goalRadius);
-  void imGuiRender(reactphysics3d::PhysicsWorld* physicsWorld,
+  void render(TerrainRenderer& renderer);
+  void imGuiRender(Goal& goal, reactphysics3d::PhysicsWorld* physicsWorld,
                    reactphysics3d::PhysicsCommon& physicsCommon);
 
   void addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
@@ -32,7 +29,9 @@ class Terrain {
   void removePhysics(reactphysics3d::PhysicsWorld* physicsWorld,
                      reactphysics3d::PhysicsCommon& physicsCommon);
 
-  float getHeight(int col, int row) { return heightMap[row * (numCols + 1) + col]; };
+  float getHeight(int col, int row) {
+    return heightMap[row * (numCols + 1) + col];
+  };
 
   glm::vec3 getPosition() { return position; }
   float getWidth() { return mapWidth; }

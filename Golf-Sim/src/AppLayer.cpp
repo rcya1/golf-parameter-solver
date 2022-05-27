@@ -1,15 +1,6 @@
 #include "AppLayer.h"
 
-#include <GLFW/glfw3.h>
-#include <reactphysics3d/reactphysics3d.h>
-
-#include "GLCore/Core/Input.h"
 #include "GLCore/Core/KeyCodes.h"
-#include "ball/BallRenderer.h"
-#include "implot.h"
-#include "lights/Lights.h"
-#include "terrain/PerlinNoise.h"
-#include "util/opengl/PerspectiveCameraController.h"
 
 using namespace GLCore;
 using namespace GLCore::Utils;
@@ -47,6 +38,7 @@ AppLayer::AppLayer(GLFWwindow* window)
           lights::createBasicDirLight(glm::vec3(0.0f, -1.0f, 0.0f))}};
   lights::generateLightSpaceMatrices(lightScene);
 
+  terrain.generateModel(goal);
   goal.generateModel(terrain);
 
   physicsWorld = physicsCommon.createPhysicsWorld();
@@ -64,6 +56,9 @@ void AppLayer::OnAttach() {
   EnableGLDebugging();
 
   glEnable(GL_DEPTH_TEST);
+  // doesn't really increase performance that much, but is useful for ensuring
+  // consistent vertex ordering (for use with collision library)
+  glEnable(GL_CULL_FACE);
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   isCursorControllingCamera = true;
 }
@@ -182,8 +177,7 @@ void AppLayer::render() {
   for (Ball& ball : balls) {
     ball.render(ballRenderer);
   }
-  terrain.render(terrainRenderer, goal.getAbsolutePosition(terrain),
-                 goal.getRadius());
+  terrain.render(terrainRenderer);
   goal.render(goalRenderer);
 
   lightDepthFrameBuffer0.bindAsTexture();
@@ -223,7 +217,7 @@ void AppLayer::imGuiRender() {
   ImGui::End();
   ImGui::End();
 
-  terrain.imGuiRender(physicsWorld, physicsCommon);
+  terrain.imGuiRender(goal, physicsWorld, physicsCommon);
   goal.imGuiRender(physicsWorld, physicsCommon, terrain);
   timeMetrics.imGuiRender();
 

@@ -1,6 +1,7 @@
 #include "Goal.h"
 
-#include <goal/GoalRenderer.h>
+#include "terrain/Terrain.h"
+#include "goal/GoalRenderer.h"
 
 Goal::Goal(float x, float z, float r)
     : relativePosition(x, z), radius(r), color(0.1f, 0.35f, 0.1f) {}
@@ -41,7 +42,15 @@ void Goal::addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
 void Goal::removePhysics(reactphysics3d::PhysicsWorld* physicsWorld,
                          reactphysics3d::PhysicsCommon& physicsCommon) {}
 
-glm::vec2 Goal::getAbsolutePosition(Terrain& terrain) { 
-  return glm::vec2(terrain.getPosition().x - terrain.getWidth() / 2 + radius + relativePosition.x * (terrain.getWidth() - 2 * radius),
-    terrain.getPosition().z - terrain.getHeight() / 2 + radius + relativePosition.y * (terrain.getHeight() - 2 * radius));
+glm::vec2 Goal::getAbsolutePosition(Terrain& terrain) {
+  return getAbsolutePosition(terrain.getPosition(), terrain.getWidth(),
+                             terrain.getHeight());
+}
+
+glm::vec2 Goal::getAbsolutePosition(glm::vec3 terrainPos, float terrainWidth,
+                                    float terrainHeight) {
+  return glm::vec2(terrainPos.x - terrainWidth / 2 + radius +
+                       relativePosition.x * (terrainWidth - 2 * radius),
+                   terrainPos.z - terrainHeight / 2 + radius +
+                       relativePosition.y * (terrainHeight - 2 * radius));
 }

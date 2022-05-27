@@ -1,5 +1,11 @@
 #include "Lights.h"
 
+#include "util/opengl/Shader.h"
+
+#include <glm/gtc/type_ptr.hpp>
+
+#include <string>
+
 void lights::setLightScene(opengl::Shader* shader,
                            lights::LightScene& lightScene) {
   shader->setInt("numPointLights", lightScene.pointLights.size());

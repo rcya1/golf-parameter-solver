@@ -1,14 +1,20 @@
 #pragma once
 
-#include <GLCoreUtils.h>
-#include <ball/BallModel.h>
+#include "util/opengl/Shader.h"
 
 #include <glm/glm.hpp>
+
 #include <queue>
 
-#include "lights/Lights.h"
-#include "util/opengl/PerspectiveCamera.h"
-#include "util/opengl/Shader.h"
+class BallModel;
+
+namespace opengl {
+class PerspectiveCamera;
+}
+
+namespace lights {
+class LightScene;
+}
 
 struct BallRenderJob {
   glm::mat4 model;

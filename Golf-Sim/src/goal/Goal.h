@@ -1,10 +1,12 @@
 #pragma once
 
-#include <GLCore.h>
+#include "goal/GoalModel.h"
+
 #include <reactphysics3d/reactphysics3d.h>
-#include "terrain/Terrain.h"
-#include <goal/GoalModel.h>
-#include <goal/GoalRenderer.h>
+#include <glm/glm.hpp>
+
+class Terrain;
+class GoalRenderer;
 
 class Goal {
  public:
@@ -28,6 +30,8 @@ class Goal {
 
   glm::vec2 getRelativePosition() { return relativePosition; }
   glm::vec2 getAbsolutePosition(Terrain& terrain);
+  glm::vec2 getAbsolutePosition(glm::vec3 terrainPos, float terrainWidth,
+                                float terrainHeight);
   float getRadius() { return radius; }
 
  private:

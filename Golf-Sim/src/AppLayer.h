@@ -1,21 +1,24 @@
 #pragma once
 
+#include "ball/Ball.h"
+#include "ball/BallModel.h"
+#include "ball/BallRenderer.h"
+#include "terrain/Terrain.h"
+#include "terrain/TerrainRenderer.h"
+#include "goal/Goal.h"
+#include "goal/GoalRenderer.h"
+#include "lights/Lights.h"
+
+#include "util/opengl/PerspectiveCameraController.h"
+#include "util/plot/TimeMetrics.h"
+#include "util/opengl/DepthFrameBuffer.h"
+
 #include <GLCore.h>
 #include <GLCoreUtils.h>
 #include <GLFW/glfw3.h>
 #include <reactphysics3d/reactphysics3d.h>
 
 #include <memory>
-
-#include "ball/Ball.h"
-#include "lights/Lights.h"
-#include "terrain/Terrain.h"
-#include "goal/Goal.h"
-#include "util/opengl/PerspectiveCameraController.h"
-#include "util/plot/TimeMetrics.h"
-#include <terrain/TerrainRenderer.h>
-#include <goal/GoalRenderer.h>
-#include <util/opengl/DepthFrameBuffer.h>
 
 class AppLayer : public GLCore::Layer {
  public:

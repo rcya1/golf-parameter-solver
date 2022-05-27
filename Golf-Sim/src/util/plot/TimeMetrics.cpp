@@ -2,6 +2,7 @@
 
 #include <imgui.h>
 #include <implot.h>
+
 #include <string>
 
 void TimeMetrics::update(GLCore::Timestep& ts) {
@@ -28,7 +29,8 @@ void TimeMetrics::imGuiRender() {
   if (ImPlot::BeginPlot("##Scrolling", NULL, NULL, ImVec2(-1, 150), 0, flags,
                         flags)) {
     ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
-    ImPlot::PlotShaded("Time per Frame (ms)", &timePerFrameScrollBuffer.data[0].x,
+    ImPlot::PlotShaded("Time per Frame (ms)",
+                       &timePerFrameScrollBuffer.data[0].x,
                        &timePerFrameScrollBuffer.data[0].y,
                        timePerFrameScrollBuffer.data.size(), -INFINITY,
                        timePerFrameScrollBuffer.offset, 2 * sizeof(float));

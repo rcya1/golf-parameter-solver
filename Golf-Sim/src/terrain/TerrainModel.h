@@ -1,15 +1,19 @@
 #pragma once
 
+#include "util/opengl/VertexArray.h"
+#include "util/opengl/VertexBuffer.h"
+
+#include <glm/glm.hpp>
+
 #include <memory>
 #include <vector>
-
-#include "util/opengl/VertexBuffer.h"
-#include "util/opengl/VertexArray.h"
 
 class TerrainModel {
  public:
   TerrainModel();
-  void generateModel(std::vector<float>* heightMap, int numCols, int numRows, float mapWidth, float mapHeight);
+  void generateModel(std::vector<float>* heightMap, int numCols, int numRows,
+                     float mapWidth, float mapHeight, glm::vec2 goalPos,
+                     float goalRadius);
   void freeModel();
 
   std::unique_ptr<opengl::VertexArray>& getVertexArray() { return vertexArray; }

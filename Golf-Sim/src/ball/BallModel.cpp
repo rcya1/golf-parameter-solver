@@ -2,12 +2,12 @@
 
 #include <glad/glad.h>
 
-#include <memory>
-#include <cassert>
-
 #include "util/opengl/IndexBuffer.h"
 #include "util/opengl/VertexArray.h"
 #include "util/opengl/VertexBuffer.h"
+
+#include <memory>
+#include <assert.h>
 
 bool BallModel::instantiated = false;
 

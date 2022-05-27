@@ -1,9 +1,10 @@
-#include <glad/glad.h>
-
 #include "DepthFrameBuffer.h"
 
+#include <glad/glad.h>
+
 namespace opengl {
-DepthFrameBuffer::DepthFrameBuffer(int width, int height) : width(width), height(height) {
+DepthFrameBuffer::DepthFrameBuffer(int width, int height)
+    : width(width), height(height) {
   glGenFramebuffers(1, &this->frameBufferId);
   glGenTextures(1, &this->depthMapId);
   glBindTexture(GL_TEXTURE_2D, depthMapId);
@@ -28,9 +29,7 @@ void DepthFrameBuffer::bind() {
   glBindFramebuffer(GL_FRAMEBUFFER, this->frameBufferId);
 }
 
-void DepthFrameBuffer::unbind() {
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
+void DepthFrameBuffer::unbind() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 
 void DepthFrameBuffer::prepareForCalculate() {
   glViewport(0, 0, width, height);

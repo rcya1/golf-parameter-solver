@@ -1,17 +1,18 @@
 #include "Terrain.h"
 
-#include <terrain/TerrainRenderer.h>
+#include "goal/Goal.h"
+#include "terrain/TerrainModel.h"
+#include "terrain/TerrainRenderer.h"
+
+#include "util/CollisionCategory.h"
+
+#include "PerlinNoise.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <iostream>
-#include <memory>
 
-#include "PerlinNoise.h"
-#include "lights/Lights.h"
-#include "util/CollisionCategory.h"
-#include "util/opengl/PerspectiveCamera.h"
+#include <iostream>
 
 Terrain::Terrain(glm::vec3 position, int numCols, int numRows, float mapWidth,
                  float mapHeight, float noiseFreq, float noiseAmp)
@@ -26,11 +27,9 @@ Terrain::Terrain(glm::vec3 position, int numCols, int numRows, float mapWidth,
       noiseFreq(noiseFreq),
       noiseAmp(noiseAmp),
       rigidBody(nullptr),
-      collider(nullptr) {
-  generateModel();
-}
+      collider(nullptr) {}
 
-void Terrain::generateModel() {
+void Terrain::generateModel(Goal& goal) {
   if (heightMap.size() > 0) {
     freeModel();
   }
@@ -55,19 +54,20 @@ void Terrain::generateModel() {
     }
   }
 
-  //std::cout << std::fixed;
-  //std::cout << std::setprecision(3);
-  //for (int i = 0; i <= numRows; i++) {
-  //  for(int j = 0; j <= numCols; j++) {
-  //    float val = heightMap[i * (static_cast<long long>(numCols) + 1) +
-  //                          j];
-  //    if (val >= 0) std::cout << " ";
-  //    std::cout << val << " ";
-  //  }
-  //  std::cout << std::endl;
-  //}
+  // std::cout << std::fixed;
+  // std::cout << std::setprecision(3);
+  // for (int i = 0; i <= numRows; i++) {
+  //   for(int j = 0; j <= numCols; j++) {
+  //     float val = heightMap[i * (static_cast<long long>(numCols) + 1) +
+  //                           j];
+  //     if (val >= 0) std::cout << " ";
+  //     std::cout << val << " ";
+  //   }
+  //   std::cout << std::endl;
+  // }
 
-  terrainModel.generateModel(&heightMap, numCols, numRows, mapWidth, mapHeight);
+  terrainModel.generateModel(&heightMap, numCols, numRows, mapWidth,
+                             mapHeight, goal.getRelativePosition(), goal.getRadius());
 }
 
 void Terrain::freeModel() {
@@ -81,29 +81,12 @@ void Terrain::update(GLCore::Timestep ts, float interpolationFactor) {
   }
 }
 
-void Terrain::render(TerrainRenderer& renderer, glm::vec2 goalPos,
-                     float goalRadius) {
-  float grx = goalPos.x - position.x + mapWidth / 2.0;
-  float gry = goalPos.y - position.z + mapHeight / 2.0;
-
-  float l = grx - goalRadius;
-  float r = grx + goalRadius;
-  float b = gry - goalRadius;
-  float t = gry + goalRadius;
-
-  // generate bounding box
-  float rl = static_cast<int>(floorf(l / getHSpacing())) * getHSpacing() + 
-             position.x - mapWidth / 2.0;
-  float rr = static_cast<int>(ceilf(r / getHSpacing())) * getHSpacing() +
-             position.x - mapWidth / 2.0;
-  float rb = static_cast<int>(floorf(b / getVSpacing())) * getVSpacing() +
-             position.z - mapHeight / 2.0;
-  float rt = static_cast<int>(ceilf(t / getVSpacing())) * getVSpacing() +
-             position.z - mapHeight / 2.0;
-  renderer.add(TerrainRenderJob{terrainModel, position, color, rl, rr, rb, rt});
+void Terrain::render(TerrainRenderer& renderer) {
+  renderer.add(TerrainRenderJob{terrainModel, position, color});
 }
 
-void Terrain::imGuiRender(reactphysics3d::PhysicsWorld* physicsWorld,
+void Terrain::imGuiRender(Goal& goal,
+                          reactphysics3d::PhysicsWorld* physicsWorld,
                           reactphysics3d::PhysicsCommon& physicsCommon) {
   ImGui::Begin("Terrain Controls");
   if (ImGui::DragFloat3("Position", glm::value_ptr(position), 0.5f, -10.0f,
@@ -124,7 +107,7 @@ void Terrain::imGuiRender(reactphysics3d::PhysicsWorld* physicsWorld,
   ImGui::DragFloat("Noise Frequency", &noiseFreq, 0.5f, 0.01f, 20.0f);
   ImGui::DragFloat("Noise Amp", &noiseAmp, 0.5f, 0.0f, 20.0f);
   if (ImGui::Button("Regenerate Terrain")) {
-    generateModel();
+    generateModel(goal);
     removePhysics(physicsWorld, physicsCommon);
     addPhysics(physicsWorld, physicsCommon);
   }

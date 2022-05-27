@@ -3,7 +3,9 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-#include "util/opengl/Shader.h"
+namespace opengl {
+class Shader;
+}
 
 namespace lights {
 struct PointLight {
@@ -23,7 +25,8 @@ struct DirLight {
   glm::vec3 ambient;
   glm::vec3 diffuse;
   glm::vec3 specular;
-  glm::mat4 lightSpaceMatrix; // can leave empty and then call generateLightSpaceMatrices
+  glm::mat4 lightSpaceMatrix;  // can leave empty and then call
+                               // generateLightSpaceMatrices
 };
 
 struct LightScene {

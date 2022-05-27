@@ -55,11 +55,10 @@ void PerspectiveCameraController::OnEvent(GLCore::Event& e,
 
   if (isCursorControllingCamera) {
     dispatcher.Dispatch<GLCore::MouseScrolledEvent>(
-      GLCORE_BIND_EVENT_FN(PerspectiveCameraController::OnMouseScrolled));
+        GLCORE_BIND_EVENT_FN(PerspectiveCameraController::OnMouseScrolled));
     dispatcher.Dispatch<GLCore::MouseMovedEvent>(
-      GLCORE_BIND_EVENT_FN(PerspectiveCameraController::OnMouseMoved));
-  }
-  else {
+        GLCORE_BIND_EVENT_FN(PerspectiveCameraController::OnMouseMoved));
+  } else {
     firstMouse = true;
   }
 }

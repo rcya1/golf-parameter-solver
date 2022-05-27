@@ -1,9 +1,12 @@
 #pragma once
 
 #include <GLCore.h>
+#include <glm/glm.hpp>
 #include <reactphysics3d/reactphysics3d.h>
-#include "goal/Goal.h"
-#include "ball/BallRenderer.h"
+
+class Terrain;
+class Goal;
+class BallRenderer;
 
 enum class BallState { ACTIVE, OUT_OF_BOUNDS, STATIONARY, GOAL };
 
@@ -27,7 +30,7 @@ class Ball {
   void setState(BallState state) { this->state = state; }
   glm::vec3 getPosition() { return position; }
   bool hasPhysics() { return rigidBody != nullptr; }
-  bool isOutOfBounds(Terrain& terrain) { return position.y < terrain.getPosition().y + terrain.getMinHeight(); }
+  bool isOutOfBounds(Terrain& terrain);
 
  private:
   glm::vec3 position;

@@ -1,12 +1,15 @@
 #pragma once
 
-#include <memory>
-#include <vector>
-
 #include "util/opengl/VertexArray.h"
 #include "util/opengl/VertexBuffer.h"
 #include "util/opengl/IndexBuffer.h"
-#include <terrain/Terrain.h>
+
+#include <glm/glm.hpp>
+
+#include <memory>
+#include <vector>
+
+class Terrain;
 
 class GoalModel {
  public:

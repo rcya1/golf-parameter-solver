@@ -1,7 +1,11 @@
 #include "TerrainRenderer.h"
 
-#include "lights/Lights.h"
 #include "util/opengl/PerspectiveCamera.h"
+#include "lights/Lights.h"
+
+#include <util/opengl/Shader.h>
+
+#include <glad/glad.h>
 
 TerrainRenderer::TerrainRenderer()
     : shader("assets/shaders/TerrainVertexShader.vert",
@@ -31,10 +35,6 @@ void TerrainRenderer::render(opengl::PerspectiveCamera& camera,
     job.model.getVertexArray()->bind();
 
     shader->setVec3f("material.diffuse", job.color);
-    shader->setFloat("goal.left", job.goalLeft);
-    shader->setFloat("goal.right", job.goalRight);
-    shader->setFloat("goal.top", job.goalTop);
-    shader->setFloat("goal.bottom", job.goalBottom);
 
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, job.position);

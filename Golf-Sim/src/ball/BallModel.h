@@ -1,13 +1,11 @@
 #pragma once
 
-#include <glad/glad.h>
-
-#include <memory>
-#include <vector>
-
 #include "util/opengl/IndexBuffer.h"
 #include "util/opengl/VertexArray.h"
 #include "util/opengl/VertexBuffer.h"
+
+#include <memory>
+#include <vector>
 
 class BallModel {
  public:

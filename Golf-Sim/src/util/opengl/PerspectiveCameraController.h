@@ -22,7 +22,6 @@ class PerspectiveCameraController {
   bool OnWindowResized(GLCore::WindowResizeEvent& e);
   bool OnMouseMoved(GLCore::MouseMovedEvent& e);
 
- private:
   PerspectiveCamera camera;
   float moveSpeed;
   float zoomSpeed;

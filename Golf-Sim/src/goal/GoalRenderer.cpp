@@ -1,5 +1,10 @@
 #include "GoalRenderer.h"
 
+#include "util/opengl/PerspectiveCamera.h"
+#include "lights/Lights.h"
+
+#include <glad/glad.h>
+
 GoalRenderer::GoalRenderer()
     : shader("assets/shaders/GoalVertexShader.vert",
              "assets/shaders/GoalFragmentShader.frag") {}

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GLCore.h"
+#include "glm/glm.hpp"
 
 namespace opengl {
 class Shader {
