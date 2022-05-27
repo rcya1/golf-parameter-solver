@@ -5,6 +5,7 @@
 
 #include "util/opengl/VertexArray.h"
 #include "util/opengl/VertexBuffer.h"
+#include "util/opengl/IndexBuffer.h"
 #include <terrain/Terrain.h>
 
 class GoalModel {
@@ -28,9 +29,12 @@ class GoalModel {
   glm::vec3 pos;
   std::vector<float> vertices;
   int numVertices;
+  std::vector<int> indices;
+  int numTriangles;
 
   std::unique_ptr<opengl::VertexArray> vertexArray;
   std::unique_ptr<opengl::VertexBuffer> vertexBuffer;
+  std::unique_ptr<opengl::IndexBuffer> indexBuffer;
 
   void addVertex(glm::vec3 a, glm::vec3 norm);
   glm::vec3 getNormal(glm::vec3 a, glm::vec3 b, glm::vec3 c);

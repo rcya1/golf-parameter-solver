@@ -16,14 +16,19 @@ BallRenderer::BallRenderer()
              "assets/shaders/BallFragmentShader.frag") {}
 
 void BallRenderer::render(BallModel& model, opengl::PerspectiveCamera& camera,
-                          lights::LightScene& lightScene) {
-  shader.activate();
-  shader.setVec3f("material.ambient", 0.0f, 0.0f, 0.0f);
-  shader.setVec3f("material.specular", 0.25f, 0.25f, 0.25f);
-  shader.setFloat("material.shininess", 2);
-  shader.setVec3f("viewPos", camera.getPos());
-  shader.setMat4f("view", false, camera.getViewMatrix());
-  shader.setMat4f("projection", false, camera.getProjectionMatrix());
+                          lights::LightScene& lightScene,
+                          opengl::Shader* shader) {
+  if (shader == nullptr) {
+    shader = &this->shader;
+  }
+
+  shader->activate();
+  shader->setVec3f("material.ambient", 0.0f, 0.0f, 0.0f);
+  shader->setVec3f("material.specular", 0.025f, 0.025f, 0.025f);
+  shader->setFloat("material.shininess", 2);
+  shader->setVec3f("viewPos", camera.getPos());
+  shader->setMat4f("view", false, camera.getViewMatrix());
+  shader->setMat4f("projection", false, camera.getProjectionMatrix());
 
   lights::setLightScene(shader, lightScene);
 
@@ -33,8 +38,8 @@ void BallRenderer::render(BallModel& model, opengl::PerspectiveCamera& camera,
     BallRenderJob job = queue.front();
     queue.pop();
 
-    shader.setMat4f("model", false, glm::value_ptr(job.model));
-    shader.setVec3f("material.diffuse", job.color);
+    shader->setMat4f("model", false, glm::value_ptr(job.model));
+    shader->setVec3f("material.diffuse", job.color);
     glDrawElements(GL_TRIANGLES, model.getIndexDataSize(), GL_UNSIGNED_INT,
                    (void*)0);
   }

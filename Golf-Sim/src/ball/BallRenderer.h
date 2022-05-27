@@ -20,7 +20,7 @@ class BallRenderer {
   BallRenderer();
 
   void render(BallModel& ballModel, opengl::PerspectiveCamera& camera,
-              lights::LightScene& lightScene);
+              lights::LightScene& lightScene, opengl::Shader* shader = nullptr);
   void renderLightDepth(BallModel& ballModel, opengl::Shader& lightDepthShader,
                         lights::LightScene& lightScene, int dirLightIndex);
   void add(BallRenderJob job);

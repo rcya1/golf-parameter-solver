@@ -25,6 +25,9 @@ AppLayer::AppLayer(GLFWwindow* window)
       terrain(glm::vec3(0.0, -5.0, 0.0), 25, 25, 10.0f, 10.0f, 5.0f, 5.0f),
       lightDepthShader("assets/shaders/LightDepthVertexShader.vert",
                        "assets/shaders/LightDepthFragmentShader.frag"),
+      visualizeNormalsShader("assets/shaders/VisualizeNormals.vert",
+                             "assets/shaders/VisualizeNormals.frag",
+                             "assets/shaders/VisualizeNormals.geom"),
       lightDepthFrameBuffer0(1024, 1024),
       addBallPosition(-1.0, 5.0f, 0.0),
       addBallRadius(0.25),
@@ -133,7 +136,8 @@ void AppLayer::update(Timestep ts) {
     ballsAdd.pop();
   }
   for (Ball& ball : balls) {
-    ball.update(ts, terrain, goal, physicsWorld, physicsCommon, interpolationFactor);
+    ball.update(ts, terrain, goal, physicsWorld, physicsCommon,
+                interpolationFactor);
   }
   terrain.update(ts, interpolationFactor);
 
@@ -159,10 +163,27 @@ void AppLayer::render() {
   glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+  if (renderNormals) {
+    //for (Ball& ball : balls) {
+    //  ball.render(ballRenderer);
+    //}
+    //terrain.render(terrainRenderer, goal.getAbsolutePosition(terrain),
+    //               goal.getRadius());
+    goal.render(goalRenderer);
+
+    //ballRenderer.render(ballModel, cameraController.getCamera(), lightScene,
+    //                    &visualizeNormalsShader);
+    //terrainRenderer.render(cameraController.getCamera(), lightScene,
+    //                       &visualizeNormalsShader);
+    goalRenderer.render(cameraController.getCamera(), lightScene,
+                        &visualizeNormalsShader);
+  }
+
   for (Ball& ball : balls) {
     ball.render(ballRenderer);
   }
-  terrain.render(terrainRenderer, goal.getAbsolutePosition(terrain), goal.getRadius());
+  terrain.render(terrainRenderer, goal.getAbsolutePosition(terrain),
+                 goal.getRadius());
   goal.render(goalRenderer);
 
   lightDepthFrameBuffer0.bindAsTexture();
@@ -187,12 +208,13 @@ void AppLayer::imGuiRender() {
   }
   ImGui::Begin("Add Ball");
   ImGui::DragFloat3("Position", glm::value_ptr(addBallPosition), 1.0f, -10.0f,
-    10.0f);
+                    10.0f);
   ImGui::DragFloat("Radius", &addBallRadius, 0.01f, 0.01f, 2.0f);
   ImGui::ColorEdit3("Color", glm::value_ptr(addBallColor));
   ImGui::Checkbox("Has Physics", &addBallHasPhysics);
   if (ImGui::Button("Add")) {
-    Ball ball = Ball(addBallPosition.x, addBallPosition.y, addBallPosition.z, addBallRadius, addBallColor);
+    Ball ball = Ball(addBallPosition.x, addBallPosition.y, addBallPosition.z,
+                     addBallRadius, addBallColor);
     if (addBallHasPhysics) {
       ball.addPhysics(physicsWorld, physicsCommon);
     }
@@ -207,6 +229,7 @@ void AppLayer::imGuiRender() {
 
   ImGui::Begin("Rendering");
   ImGui::Checkbox("Shadows", &renderShadows);
+  ImGui::Checkbox("Normals", &renderNormals);
   if (ImGui::Button("Reload Shaders")) {
     lightDepthShader.load();
     ballRenderer.reloadShader();

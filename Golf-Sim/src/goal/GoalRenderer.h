@@ -17,8 +17,8 @@ class GoalRenderer {
  public:
   GoalRenderer();
 
-  void render(opengl::PerspectiveCamera& camera,
-              lights::LightScene& lightScene);
+  void render(opengl::PerspectiveCamera& camera, lights::LightScene& lightScene,
+              opengl::Shader* shader = nullptr);
   void renderLightDepth(opengl::Shader& lightDepthShader,
                         lights::LightScene& lightScene, int dirLightIndex);
   void add(GoalRenderJob job);

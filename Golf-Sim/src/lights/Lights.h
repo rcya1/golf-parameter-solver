@@ -31,7 +31,7 @@ struct LightScene {
   std::vector<DirLight> dirLights;
 };
 
-void setLightScene(opengl::Shader& shader, LightScene& lightScene);
+void setLightScene(opengl::Shader* shader, LightScene& lightScene);
 PointLight createBasicPointLight(glm::vec3 position);
 DirLight createBasicDirLight(glm::vec3 direction);
 void generateLightSpaceMatrices(LightScene& lightScene);

@@ -38,6 +38,8 @@ class AppLayer : public GLCore::Layer {
 
   opengl::DepthFrameBuffer lightDepthFrameBuffer0;
   opengl::Shader lightDepthShader;
+  
+  opengl::Shader visualizeNormalsShader;
 
   std::vector<Ball> balls;
   std::queue<Ball> ballsAdd;
@@ -64,4 +66,5 @@ class AppLayer : public GLCore::Layer {
   reactphysics3d::PhysicsWorld* physicsWorld;
 
   bool renderShadows = false;
+  bool renderNormals = false;
 };
