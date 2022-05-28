@@ -41,7 +41,7 @@ class GoalModel {
 
   void addVertex(glm::vec3 a, glm::vec3 norm);
   glm::vec3 getNormal(glm::vec3 a, glm::vec3 b, glm::vec3 c);
-  void addTriangle(glm::vec3 a, glm::vec3 b, glm::vec3 c);
+  void addTriangle(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 norm);
 };
 
 struct GoalModelPoint {
