@@ -1,6 +1,6 @@
-# Golf Phase Space Simulator
+# Golf Parameter Solver
 
-A golf simulator built with reactphysics3d that generates phase space diagrams based on which angles and launch velocities successfully land balls in the hole. Uses OpenGL to render the golf course and Dear ImGui with ImPlot for the user interface. Only runs on Windows.
+A golf simulator built with reactphysics3d that generates phase space diagrams based on which angles and launch velocities successfully land balls in the hole. Uses OpenGL to render the golf course and Dear ImGui with ImPlot for the user interface. Currently only built for Windows.
 
 Built on top of Cherno's OpenGL-Core library that uses premake for generating project files.
 
