@@ -383,8 +383,8 @@ void GoalModel::generateModel(Terrain& terrain, glm::vec2 goalCenter,
   vertexArray->bind();
 
   vertexBuffer = std::make_unique<opengl::VertexBuffer>(
-      vertices.size() * sizeof(float), vertices.data(), 6 * sizeof(float),
-      GL_STATIC_DRAW);
+      fullVertexData.size() * sizeof(float), fullVertexData.data(),
+      6 * sizeof(float), GL_STATIC_DRAW);
   vertexBuffer->setVertexAttribute(0, 3, GL_FLOAT, 0);
   vertexBuffer->setVertexAttribute(1, 3, GL_FLOAT, 3 * sizeof(float));
 
@@ -392,13 +392,31 @@ void GoalModel::generateModel(Terrain& terrain, glm::vec2 goalCenter,
 }
 
 void GoalModel::addVertex(glm::vec3 a, glm::vec3 norm) {
-  vertices.push_back(a.x);
-  vertices.push_back(a.y);
-  vertices.push_back(a.z);
+  fullVertexData.push_back(a.x);
+  fullVertexData.push_back(a.y);
+  fullVertexData.push_back(a.z);
 
-  vertices.push_back(norm.x);
-  vertices.push_back(norm.y);
-  vertices.push_back(norm.z);
+  fullVertexData.push_back(norm.x);
+  fullVertexData.push_back(norm.y);
+  fullVertexData.push_back(norm.z);
+
+  int ix = -1;
+  for (int i = 0; i < vertices.size(); i += 3) {
+    glm::vec3 vertex = glm::vec3(vertices[i], vertices[i + 1], vertices[i + 2]);
+    if (glm::length(vertex - a) < 0.00001) {
+      ix = i / 3;
+    }
+  }
+
+  if (ix == -1) {
+    vertices.push_back(a.x);
+    vertices.push_back(a.y);
+    vertices.push_back(a.z);
+
+    ix = vertices.size() - 1;
+  }
+
+  indices.push_back(ix);
 
   numVertices++;
 }
@@ -434,9 +452,11 @@ void GoalModel::addTriangle(glm::vec3 a, glm::vec3 b, glm::vec3 c,
 }
 
 void GoalModel::freeModel() {
-  if (vertices.empty()) return;
+  if (fullVertexData.empty()) return;
 
+  fullVertexData.clear();
   vertices.clear();
+  indices.clear();
   numVertices = 0;
 
   vertexArray->free();

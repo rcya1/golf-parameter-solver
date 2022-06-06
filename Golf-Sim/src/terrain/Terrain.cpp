@@ -141,4 +141,7 @@ void Terrain::removePhysics(reactphysics3d::PhysicsWorld* physicsWorld,
                             reactphysics3d::PhysicsCommon& physicsCommon) {
   physicsWorld->destroyRigidBody(rigidBody);
   physicsCommon.destroyHeightFieldShape(shape);
+
+  rigidBody = nullptr;
+  shape = nullptr;
 }

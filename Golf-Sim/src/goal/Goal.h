@@ -40,4 +40,11 @@ class Goal {
   glm::vec3 color;
 
   GoalModel goalModel;
+
+  reactphysics3d::RigidBody* rigidBody;
+  reactphysics3d::Collider* collider;
+  reactphysics3d::ConcaveMeshShape* shape;
+  reactphysics3d::TriangleMesh* triangleMesh;
+  reactphysics3d::TriangleVertexArray* triangleVertexArray;
+  reactphysics3d::Transform prevTransform;
 };

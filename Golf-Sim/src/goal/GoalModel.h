@@ -25,15 +25,17 @@ class GoalModel {
 
   std::unique_ptr<opengl::VertexArray>& getVertexArray() { return vertexArray; }
   glm::vec3 getPosition() { return pos; }
+  std::vector<float> getVertices() { return vertices; };
+  std::vector<int> getIndices() { return indices; };
 
   int getNumVertices() { return numVertices; }
 
  private:
   glm::vec3 pos;
+  std::vector<float> fullVertexData;
   std::vector<float> vertices;
-  int numVertices;
   std::vector<int> indices;
-  int numTriangles;
+  int numVertices;
 
   std::unique_ptr<opengl::VertexArray> vertexArray;
   std::unique_ptr<opengl::VertexBuffer> vertexBuffer;
