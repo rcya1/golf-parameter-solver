@@ -20,7 +20,7 @@ class Terrain {
   void freeModel();
 
   void update(GLCore::Timestep ts, float interpolationFactor = -1);
-  void render(TerrainRenderer& renderer);
+  void render(TerrainRenderer& renderer, glm::vec2 startPosition, float highlightRadius, glm::vec3 highlightColor);
   void imGuiRender(Goal& goal, reactphysics3d::PhysicsWorld* physicsWorld,
                    reactphysics3d::PhysicsCommon& physicsCommon);
 

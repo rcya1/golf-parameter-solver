@@ -43,6 +43,7 @@ class AppLayer : public GLCore::Layer {
   opengl::Shader lightDepthShader;
   
   opengl::Shader visualizeNormalsShader;
+  opengl::Shader primitiveShader;
 
   std::vector<Ball> balls;
   std::queue<Ball> ballsAdd;
@@ -54,6 +55,10 @@ class AppLayer : public GLCore::Layer {
   glm::vec3 addBallColor;
   bool addBallHasPhysics;
 
+  glm::vec2 startPosition;
+  float startPositionHighlightRadius;
+  glm::vec3 startPositionHighlightColor;
+
   Terrain terrain;
   TerrainRenderer terrainRenderer;
   
@@ -63,11 +68,12 @@ class AppLayer : public GLCore::Layer {
   TimeMetrics timeMetrics;
 
   float physicsAccumulatedTime = 0;
-  bool physicsRunning = true;
+  bool physicsRunning = false;
   bool justStartedPhysics = true;
   reactphysics3d::PhysicsCommon physicsCommon;
   reactphysics3d::PhysicsWorld* physicsWorld;
 
   bool renderShadows = false;
   bool renderNormals = false;
+  bool renderPhysicsDebugging = false;
 };

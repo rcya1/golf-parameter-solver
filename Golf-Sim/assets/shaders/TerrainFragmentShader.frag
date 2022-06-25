@@ -51,6 +51,10 @@ uniform Material material;
 
 uniform sampler2D shadowMap;
 
+uniform vec2 startPosition;
+uniform float highlightRadius;
+uniform vec3 highlightColor;
+
 float ShadowCalculation(vec3 normal, vec3 lightDir, vec4 fragPosLightSpace, int i)
 {
 	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
@@ -88,7 +92,15 @@ void main() {
 		result += CalcDirLight(dirLights[i], norm, viewDir, i);
 	}
 
-	FragColor = vec4(result, 1.0);
+	if((FragPos.x - startPosition.x) * (FragPos.x - startPosition.x) + 
+		(FragPos.z - startPosition.y) * (FragPos.z - startPosition.y) < 
+		highlightRadius) {
+		
+		FragColor = vec4(mix(result, highlightColor, 0.3), 1.0);
+	}
+	else {
+		FragColor = vec4(result, 1.0);	
+	}
 } 
 
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir) {

@@ -81,8 +81,11 @@ void Terrain::update(GLCore::Timestep ts, float interpolationFactor) {
   }
 }
 
-void Terrain::render(TerrainRenderer& renderer) {
-  renderer.add(TerrainRenderJob{terrainModel, position, color});
+void Terrain::render(TerrainRenderer& renderer, glm::vec2 startPosition, float highlightRadius, glm::vec3 highlightColor) {
+  glm::vec2 startPos{(startPosition.x - 0.5) * mapWidth + position.x,
+                     (startPosition.y - 0.5) * mapHeight + position.z};
+
+  renderer.add(TerrainRenderJob{terrainModel, position, color, startPos, highlightRadius, highlightColor});
 }
 
 void Terrain::imGuiRender(Goal& goal,

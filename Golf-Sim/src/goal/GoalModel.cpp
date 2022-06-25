@@ -348,17 +348,19 @@ void GoalModel::generateModel(Terrain& terrain, glm::vec2 goalCenter,
   }
 
   // add walls of the goal
-  float bottomHeight = averageHeight - GOAL_HEIGHT;
+  this->bottomHeight = averageHeight - GOAL_HEIGHT + terrain.getPosition().y;
 
   for (int i = 0; i < SECTOR_COUNT; i++) {
     GoalModelPoint curr = points[i];
     GoalModelPoint next = points[(i + 1) % SECTOR_COUNT];
 
     glm::vec3 currTop = glm::vec3(curr.pos.x, curr.height, curr.pos.y);
-    glm::vec3 currBottom = glm::vec3(curr.pos.x, bottomHeight, curr.pos.y);
+    glm::vec3 currBottom = glm::vec3(
+        curr.pos.x, bottomHeight - terrain.getPosition().y, curr.pos.y);
 
     glm::vec3 nextTop = glm::vec3(next.pos.x, next.height, next.pos.y);
-    glm::vec3 nextBottom = glm::vec3(next.pos.x, bottomHeight, next.pos.y);
+    glm::vec3 nextBottom = glm::vec3(
+        next.pos.x, bottomHeight - terrain.getPosition().y, next.pos.y);
 
     addTriangle(currTop, currBottom, nextTop,
                 getNormal(currTop, currBottom, nextTop));
@@ -367,13 +369,16 @@ void GoalModel::generateModel(Terrain& terrain, glm::vec2 goalCenter,
   }
 
   // add bottom of the goal
-  glm::vec3 centerBottom = glm::vec3(goalCenter.x, bottomHeight, goalCenter.y);
+  glm::vec3 centerBottom = glm::vec3(
+      goalCenter.x, bottomHeight - terrain.getPosition().y, goalCenter.y);
   for (int i = 0; i < SECTOR_COUNT; i++) {
     GoalModelPoint curr = points[i];
     GoalModelPoint next = points[(i + 1) % SECTOR_COUNT];
 
-    glm::vec3 currBottom = glm::vec3(curr.pos.x, bottomHeight, curr.pos.y);
-    glm::vec3 nextBottom = glm::vec3(next.pos.x, bottomHeight, next.pos.y);
+    glm::vec3 currBottom = glm::vec3(
+        curr.pos.x, bottomHeight - terrain.getPosition().y, curr.pos.y);
+    glm::vec3 nextBottom = glm::vec3(
+        next.pos.x, bottomHeight - terrain.getPosition().y, next.pos.y);
 
     addTriangle(currBottom, centerBottom, nextBottom,
                 getNormal(currBottom, centerBottom, nextBottom));
@@ -413,10 +418,10 @@ void GoalModel::addVertex(glm::vec3 a, glm::vec3 norm) {
     vertices.push_back(a.y);
     vertices.push_back(a.z);
 
-    ix = vertices.size() - 1;
+    ix = (vertices.size() - 3) / 3;
   }
 
-  indices.push_back(ix);
+  indices.push_back(static_cast<unsigned int>(ix));
 
   numVertices++;
 }
@@ -436,7 +441,7 @@ void GoalModel::addTriangle(glm::vec3 a, glm::vec3 b, glm::vec3 c,
     norm *= -1;
   }
 
-  // ensure the ordering o
+  // ensure the ordering is consistent
   if (triangleNorm.y < 0) {
     norm = getNormal(a, c, b);
     addVertex(a, norm);

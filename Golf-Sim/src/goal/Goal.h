@@ -33,6 +33,7 @@ class Goal {
   glm::vec2 getAbsolutePosition(glm::vec3 terrainPos, float terrainWidth,
                                 float terrainHeight);
   float getRadius() { return radius; }
+  float getBottomHeight();
 
  private:
   glm::vec2 relativePosition;

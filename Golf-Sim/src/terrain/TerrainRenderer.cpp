@@ -35,6 +35,9 @@ void TerrainRenderer::render(opengl::PerspectiveCamera& camera,
     job.model.getVertexArray()->bind();
 
     shader->setVec3f("material.diffuse", job.color);
+    shader->setVec2f("startPosition", job.startPos);
+    shader->setFloat("highlightRadius", job.highlightRadius);
+    shader->setVec3f("highlightColor", job.highlightColor);
 
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, job.position);

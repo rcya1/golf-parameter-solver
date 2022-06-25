@@ -62,11 +62,23 @@ void Goal::addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
       3 * sizeof(float),
       goalModel.getIndices().size() / 3,
       goalModel.getIndices().data(),
-      3 * sizeof(int),
+      3 * sizeof(unsigned int),
       reactphysics3d::TriangleVertexArray::VertexDataType::VERTEX_FLOAT_TYPE,
       reactphysics3d::TriangleVertexArray::IndexDataType::INDEX_INTEGER_TYPE);
   reactphysics3d::Transform shapeTransform =
       reactphysics3d::Transform::identity();
+
+  //std::cout << goalModel.getVertices().size() << " : "
+  //          << goalModel.getIndices().size() << std::endl;
+
+  //for (auto x : goalModel.getVertices()) {
+  //  std::cout << x << std::endl;
+  //}
+
+  //std::cout << std::endl;
+  //for (auto x : goalModel.getIndices()) {
+  //  std::cout << x << std::endl;
+  //}
 
   triangleMesh = physicsCommon.createTriangleMesh();
   triangleMesh->addSubpart(triangleVertexArray);
@@ -101,3 +113,5 @@ glm::vec2 Goal::getAbsolutePosition(glm::vec3 terrainPos, float terrainWidth,
                    terrainPos.z - terrainHeight / 2 + radius +
                        relativePosition.y * (terrainHeight - 2 * radius));
 }
+
+float Goal::getBottomHeight() { return goalModel.getBottomHeight(); }

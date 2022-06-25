@@ -85,6 +85,12 @@ void Ball::update(GLCore::Timestep ts, Terrain& terrain, Goal& goal,
     this->collider->setCollideWithMaskBits(CollisionCategory::TERRAIN);
     nearGoal = false;
   }
+
+  // calculate if we are in the goal or not based on our current height and proximity to the goal
+  if (state == BallState::STATIONARY &&
+      abs(position.y - radius - goal.getBottomHeight()) < 0.2 && newNearGoal) {
+    state = BallState::GOAL;
+  }
 }
 
 void Ball::render(BallRenderer& renderer) {

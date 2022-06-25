@@ -18,6 +18,9 @@ struct TerrainRenderJob {
   TerrainModel& model;
   glm::vec3 position;
   glm::vec3 color;
+  glm::vec2 startPos;
+  float highlightRadius;
+  glm::vec3 highlightColor;
 };
 
 class TerrainRenderer {

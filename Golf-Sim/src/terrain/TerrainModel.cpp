@@ -38,7 +38,7 @@ void TerrainModel::generateModel(std::vector<float>* heightMap, int numCols,
   int bb = static_cast<int>(floorf(b / vSpacing));
   int bt = static_cast<int>(ceilf(t / vSpacing));
 
-  printf("%d %d %d %d", bl, br, bb, bt);
+  //printf("%d %d %d %d", bl, br, bb, bt);
 
   for (int j = 0; j < numCols; j++) {
     for (int i = 0; i < numRows; i++) {

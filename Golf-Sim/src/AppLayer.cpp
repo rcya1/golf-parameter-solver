@@ -1,6 +1,11 @@
 #include "AppLayer.h"
 
+#include <vector>
+
 #include "GLCore/Core/KeyCodes.h"
+#include "util/DebugColors.h"
+#include "util/opengl/VertexArray.h"
+#include "util/opengl/VertexBuffer.h"
 
 using namespace GLCore;
 using namespace GLCore::Utils;
@@ -19,9 +24,14 @@ AppLayer::AppLayer(GLFWwindow* window)
       visualizeNormalsShader("assets/shaders/VisualizeNormals.vert",
                              "assets/shaders/VisualizeNormals.frag",
                              "assets/shaders/VisualizeNormals.geom"),
+      primitiveShader("assets/shaders/PrimitiveShader.vert",
+                      "assets/shaders/PrimitiveShader.frag"),
       lightDepthFrameBuffer0(1024, 1024),
+      startPosition(0.0, 0.0),
+      startPositionHighlightRadius(0.1),
+      startPositionHighlightColor(1.0f, 0.843f, 0),
       addBallPosition(-1.0, 5.0f, 0.0),
-      addBallRadius(0.25),
+      addBallRadius(0.05),
       addBallColor(0.808f, 0.471f, 0.408f) {
   lightScene = lights::LightScene{
       std::vector<lights::PointLight>{
@@ -58,7 +68,7 @@ void AppLayer::OnAttach() {
   glEnable(GL_DEPTH_TEST);
   // doesn't really increase performance that much, but is useful for ensuring
   // consistent vertex ordering (for use with collision library)
-  glEnable(GL_CULL_FACE);
+  // glEnable(GL_CULL_FACE);
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   isCursorControllingCamera = true;
 }
@@ -142,58 +152,183 @@ void AppLayer::update(Timestep ts) {
 }
 
 void AppLayer::render() {
-  lightDepthFrameBuffer0.prepareForCalculate();
-  if (renderShadows) {
+  if (renderPhysicsDebugging) {
+    physicsWorld->setIsDebugRenderingEnabled(true);
+    reactphysics3d::DebugRenderer& debugRenderer =
+        physicsWorld->getDebugRenderer();
+    debugRenderer.setIsDebugItemDisplayed(
+        reactphysics3d::DebugRenderer::DebugItem::COLLIDER_AABB, true);
+    debugRenderer.setIsDebugItemDisplayed(
+        reactphysics3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
+
+    debugRenderer.setIsDebugItemDisplayed(
+        reactphysics3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true);
+    debugRenderer.setIsDebugItemDisplayed(
+        reactphysics3d::DebugRenderer::DebugItem::CONTACT_POINT, true);
+
+    debugRenderer.computeDebugRenderingPrimitives(*physicsWorld);
+
+    primitiveShader.activate();
+    primitiveShader.setMat4f("view", false,
+                             cameraController.getCamera().getViewMatrix());
+    primitiveShader.setMat4f(
+        "projection", false,
+        cameraController.getCamera().getProjectionMatrix());
+
+    if (debugRenderer.getNbLines() > 0) {
+      const reactphysics3d::DebugRenderer::DebugLine* linesArray =
+          debugRenderer.getLinesArray();
+
+      std::vector<float> vertexData;
+      for (int i = 0; i < debugRenderer.getNbLines(); i++) {
+        vertexData.push_back(linesArray[i].point1.x);
+        vertexData.push_back(linesArray[i].point1.y);
+        vertexData.push_back(linesArray[i].point1.z);
+
+        glm::vec3 color1 = convertColor(linesArray[i].color1);
+        vertexData.push_back(color1.x);
+        vertexData.push_back(color1.y);
+        vertexData.push_back(color1.z);
+
+        vertexData.push_back(linesArray[i].point2.x);
+        vertexData.push_back(linesArray[i].point2.y);
+        vertexData.push_back(linesArray[i].point2.z);
+
+        glm::vec3 color2 = convertColor(linesArray[i].color2);
+        vertexData.push_back(color2.x);
+        vertexData.push_back(color2.y);
+        vertexData.push_back(color2.z);
+      }
+
+      opengl::VertexArray vertexArray;
+      vertexArray.bind();
+      opengl::VertexBuffer vertexBuffer(vertexData.size() * sizeof(float),
+                                        vertexData.data(), 6 * sizeof(float),
+                                        GL_STATIC_DRAW);
+      vertexBuffer.bind();
+      vertexBuffer.setVertexAttribute(0, 3, GL_FLOAT, 0);
+      vertexBuffer.setVertexAttribute(1, 3, GL_FLOAT, 3 * sizeof(float));
+
+      glDrawArrays(GL_LINES, 0, debugRenderer.getNbLines() * 2);
+    }
+
+    if (debugRenderer.getNbTriangles() > 0) {
+      const reactphysics3d::DebugRenderer::DebugTriangle* trianglesArray =
+          debugRenderer.getTrianglesArray();
+
+      std::vector<float> vertexData;
+      for (int i = 0; i < debugRenderer.getNbTriangles(); i++) {
+        vertexData.push_back(trianglesArray[i].point1.x);
+        vertexData.push_back(trianglesArray[i].point1.y);
+        vertexData.push_back(trianglesArray[i].point1.z);
+
+        glm::vec3 color1 = convertColor(trianglesArray[i].color1);
+        vertexData.push_back(color1.x);
+        vertexData.push_back(color1.y);
+        vertexData.push_back(color1.z);
+
+        vertexData.push_back(trianglesArray[i].point2.x);
+        vertexData.push_back(trianglesArray[i].point2.y);
+        vertexData.push_back(trianglesArray[i].point2.z);
+
+        glm::vec3 color2 = convertColor(trianglesArray[i].color2);
+        vertexData.push_back(color2.x);
+        vertexData.push_back(color2.y);
+        vertexData.push_back(color2.z);
+
+        vertexData.push_back(trianglesArray[i].point3.x);
+        vertexData.push_back(trianglesArray[i].point3.y);
+        vertexData.push_back(trianglesArray[i].point3.z);
+
+        glm::vec3 color3 = convertColor(trianglesArray[i].color3);
+        vertexData.push_back(color3.x);
+        vertexData.push_back(color3.y);
+        vertexData.push_back(color3.z);
+
+        // printf("%f %f %f, %f %f %f, %f %f %f\n", trianglesArray[i].point1.x,
+        //        trianglesArray[i].point1.y, trianglesArray[i].point1.z,
+        //        trianglesArray[i].point2.x, trianglesArray[i].point2.y,
+        //        trianglesArray[i].point2.z, trianglesArray[i].point3.x,
+        //        trianglesArray[i].point3.y, trianglesArray[i].point3.z);
+      }
+
+      opengl::VertexArray vertexArray;
+      vertexArray.bind();
+
+      opengl::VertexBuffer vertexBuffer(vertexData.size() * sizeof(float),
+                                        vertexData.data(), 6 * sizeof(float),
+                                        GL_STATIC_DRAW);
+      vertexBuffer.bind();
+      vertexBuffer.setVertexAttribute(0, 3, GL_FLOAT, 0);
+      vertexBuffer.setVertexAttribute(1, 3, GL_FLOAT, 3 * sizeof(float));
+
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      glDrawArrays(GL_TRIANGLES, 0, debugRenderer.getNbTriangles() * 3);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+  } else {
+    physicsWorld->setIsDebugRenderingEnabled(false);
+
+    lightDepthFrameBuffer0.prepareForCalculate();
+    if (renderShadows) {
+      for (Ball& ball : balls) {
+        ball.render(ballRenderer);
+      }
+
+      ballRenderer.renderLightDepth(ballModel, lightDepthShader, lightScene, 0);
+    }
+    lightDepthFrameBuffer0.unbind();
+
+    int width, height;
+    glfwGetWindowSize(window, &width, &height);
+    glViewport(0, 0, width, height);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    if (renderNormals) {
+      // for (Ball& ball : balls) {
+      //   ball.render(ballRenderer);
+      // }
+      // terrain.render(terrainRenderer, goal.getAbsolutePosition(terrain),
+      //                goal.getRadius());
+      goal.render(goalRenderer);
+
+      // ballRenderer.render(ballModel, cameraController.getCamera(),
+      // lightScene,
+      //                     &visualizeNormalsShader);
+      // terrainRenderer.render(cameraController.getCamera(), lightScene,
+      //                        &visualizeNormalsShader);
+      goalRenderer.render(cameraController.getCamera(), lightScene,
+                          &visualizeNormalsShader);
+    }
+
     for (Ball& ball : balls) {
       ball.render(ballRenderer);
     }
-
-    ballRenderer.renderLightDepth(ballModel, lightDepthShader, lightScene, 0);
-  }
-  lightDepthFrameBuffer0.unbind();
-
-  int width, height;
-  glfwGetWindowSize(window, &width, &height);
-  glViewport(0, 0, width, height);
-  glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  if (renderNormals) {
-    //for (Ball& ball : balls) {
-    //  ball.render(ballRenderer);
-    //}
-    //terrain.render(terrainRenderer, goal.getAbsolutePosition(terrain),
-    //               goal.getRadius());
+    terrain.render(terrainRenderer, startPosition, startPositionHighlightRadius, startPositionHighlightColor);
     goal.render(goalRenderer);
 
-    //ballRenderer.render(ballModel, cameraController.getCamera(), lightScene,
-    //                    &visualizeNormalsShader);
-    //terrainRenderer.render(cameraController.getCamera(), lightScene,
-    //                       &visualizeNormalsShader);
-    goalRenderer.render(cameraController.getCamera(), lightScene,
-                        &visualizeNormalsShader);
+    lightDepthFrameBuffer0.bindAsTexture();
+    ballRenderer.render(ballModel, cameraController.getCamera(), lightScene);
+    terrainRenderer.render(cameraController.getCamera(), lightScene);
+    goalRenderer.render(cameraController.getCamera(), lightScene);
   }
-
-  for (Ball& ball : balls) {
-    ball.render(ballRenderer);
-  }
-  terrain.render(terrainRenderer);
-  goal.render(goalRenderer);
-
-  lightDepthFrameBuffer0.bindAsTexture();
-  ballRenderer.render(ballModel, cameraController.getCamera(), lightScene);
-  terrainRenderer.render(cameraController.getCamera(), lightScene);
-  goalRenderer.render(cameraController.getCamera(), lightScene);
 }
 
 void AppLayer::imGuiRender() {
-  ImGui::Begin("Physics");
+  ImGui::Begin("General Settings");
   if (ImGui::Button("Start / Stop")) {
     physicsRunning = !physicsRunning;
     if (physicsRunning) {
       justStartedPhysics = true;
     }
   }
+  ImGui::DragFloat2("Start Position", glm::value_ptr(startPosition), 0.05f,
+                    0.0f, 0.25f);
+  ImGui::DragFloat("Highlight Radius", &startPositionHighlightRadius, 0.01f,
+                   0.0f, 1.0f);
+  ImGui::ColorEdit3("Highlight Color", glm::value_ptr(startPositionHighlightColor));
+
   ImGui::End();
 
   ImGui::Begin("Balls");
@@ -224,6 +359,7 @@ void AppLayer::imGuiRender() {
   ImGui::Begin("Rendering");
   ImGui::Checkbox("Shadows", &renderShadows);
   ImGui::Checkbox("Normals", &renderNormals);
+  ImGui::Checkbox("Physics Debugging", &renderPhysicsDebugging);
   if (ImGui::Button("Reload Shaders")) {
     lightDepthShader.load();
     ballRenderer.reloadShader();
