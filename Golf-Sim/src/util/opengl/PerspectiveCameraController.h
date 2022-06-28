@@ -12,6 +12,7 @@ class PerspectiveCameraController {
                               float zoomSpeed, float panSensitivity);
 
   void update(GLCore::Timestep ts);
+  void updateSize(int width, int height);
   void OnEvent(GLCore::Event& e, bool isCursorControllingCamera);
 
   PerspectiveCamera& getCamera() { return camera; }

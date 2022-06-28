@@ -11,6 +11,7 @@
 
 #include "util/opengl/PerspectiveCameraController.h"
 #include "util/plot/TimeMetrics.h"
+#include "util/opengl/RenderFrameBuffer.h"
 #include "util/opengl/DepthFrameBuffer.h"
 
 #include <GLCore.h>
@@ -32,9 +33,12 @@ class AppLayer : public GLCore::Layer {
   void render();
   virtual void imGuiRender() override;
 
+  void initializeBalls();
+
  private:
   GLFWwindow* window;
   bool isCursorControllingCamera;
+  opengl::RenderFrameBuffer renderFrameBuffer;
 
   opengl::PerspectiveCameraController cameraController;
   lights::LightScene lightScene;

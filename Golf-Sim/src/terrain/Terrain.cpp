@@ -82,9 +82,7 @@ void Terrain::update(GLCore::Timestep ts, float interpolationFactor) {
 }
 
 void Terrain::render(TerrainRenderer& renderer, glm::vec2 startPosition, float highlightRadius, glm::vec3 highlightColor) {
-  glm::vec2 startPos{(startPosition.x - 0.5) * mapWidth + position.x,
-                     (startPosition.y - 0.5) * mapHeight + position.z};
-
+  glm::vec2 startPos = convertUV(startPosition);
   renderer.add(TerrainRenderJob{terrainModel, position, color, startPos, highlightRadius, highlightColor});
 }
 
@@ -147,4 +145,47 @@ void Terrain::removePhysics(reactphysics3d::PhysicsWorld* physicsWorld,
 
   rigidBody = nullptr;
   shape = nullptr;
+}
+
+// finds the straight down projection of p onto the plane formed by a, b, c
+float projectToPlane(glm::vec2 p, glm::vec3 a, glm::vec3 b, glm::vec3 c) {
+  glm::vec3 A = b - a;
+  glm::vec3 B = c - a;
+  glm::vec3 C = glm::cross(A, B);
+  return (C.x * (a.x - p.x) + C.z * (a.z - p.y) + C.y * a.y) / C.y;
+}
+
+void printVec3(glm::vec3 vec) {
+  std::cout << vec.x << " : " << vec.y << " : " << vec.z << std::endl;
+}
+
+float Terrain::getHeightFromUV(glm::vec2 uv) {
+  float x = uv.x;
+  float y = uv.y;
+
+  float hSpacing = getHSpacing();
+  float vSpacing = getVSpacing();
+
+  int col = x / hSpacing;
+  int row = y / vSpacing;
+
+  float ax = x - hSpacing * col;
+  float ay = y - vSpacing * row;
+
+  bool isTopRight = ay * hSpacing > -vSpacing * ax + vSpacing * hSpacing;
+  // std::cout << x << " : " << y << " : " << col << " : " << row << " : " <<
+  // isTopRight << std::endl;
+
+  float tl = col * hSpacing;
+  float tr = (col + 1) * hSpacing;
+  float tb = row * vSpacing;
+  float tt = (row + 1) * vSpacing;
+  glm::vec3 topLeft = glm::vec3(tl, getHeight(col, row + 1), tt);
+  glm::vec3 topRight = glm::vec3(tr, getHeight(col + 1, row + 1), tt);
+  glm::vec3 botLeft = glm::vec3(tl, getHeight(col, row), tb);
+  glm::vec3 botRight = glm::vec3(tr, getHeight(col + 1, row), tb);
+  float height = isTopRight ? projectToPlane(uv, topLeft, topRight, botRight)
+                            : projectToPlane(uv, topLeft, botRight, botLeft);
+
+  return height;
 }

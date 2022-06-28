@@ -76,6 +76,11 @@ bool PerspectiveCameraController::OnWindowResized(
   return false;
 }
 
+void PerspectiveCameraController::updateSize(int width, int height) {
+  float aspectRatio = static_cast<float>(width) / height;
+  camera.setAspectRatio(aspectRatio);
+}
+
 bool PerspectiveCameraController::OnMouseMoved(GLCore::MouseMovedEvent& e) {
   float mouseX = e.GetX();
   float mouseY = e.GetY();

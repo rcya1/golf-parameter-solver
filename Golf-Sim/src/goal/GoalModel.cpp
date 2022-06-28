@@ -10,53 +10,6 @@
 
 GoalModel::GoalModel() : numVertices(0) {}
 
-// finds the straight down projection of p onto the plane formed by a, b, c
-float projectToPlane(glm::vec2 p, glm::vec3 a, glm::vec3 b, glm::vec3 c) {
-  glm::vec3 A = b - a;
-  glm::vec3 B = c - a;
-  glm::vec3 C = glm::cross(A, B);
-  return (C.x * (a.x - p.x) + C.z * (a.z - p.y) + C.y * a.y) / C.y;
-}
-
-void printVec3(glm::vec3 vec) {
-  std::cout << vec.x << " : " << vec.y << " : " << vec.z << std::endl;
-}
-
-float projectToTerrain(glm::vec2 p, Terrain& terrain) {
-  float x = p.x;
-  float y = p.y;
-
-  float hSpacing = terrain.getHSpacing();
-  float vSpacing = terrain.getVSpacing();
-
-  int col = x / hSpacing;
-  int row = y / vSpacing;
-
-  float ax = x - hSpacing * col;
-  float ay = y - vSpacing * row;
-
-  bool isTopRight = ay * hSpacing > -vSpacing * ax + vSpacing * hSpacing;
-  // std::cout << x << " : " << y << " : " << col << " : " << row << " : " <<
-  // isTopRight << std::endl;
-
-  float tl = col * hSpacing;
-  float tr = (col + 1) * hSpacing;
-  float tb = row * vSpacing;
-  float tt = (row + 1) * vSpacing;
-  glm::vec3 topLeft = glm::vec3(tl, terrain.getHeight(col, row + 1), tt);
-  glm::vec3 topRight = glm::vec3(tr, terrain.getHeight(col + 1, row + 1), tt);
-  glm::vec3 botLeft = glm::vec3(tl, terrain.getHeight(col, row), tb);
-  glm::vec3 botRight = glm::vec3(tr, terrain.getHeight(col + 1, row), tb);
-  float height = isTopRight ? projectToPlane(p, topLeft, topRight, botRight)
-                            : projectToPlane(p, topLeft, botRight, botLeft);
-  // printVec3(topLeft);
-  // printVec3(topRight);
-  // printVec3(botLeft);
-  // printVec3(botRight);
-  // std::cout << height << std::endl;
-  return height;
-}
-
 bool isInCircle(glm::vec2 p, glm::vec2 c, float r) {
   return glm::length(p - c) < r;
 }
@@ -119,7 +72,7 @@ std::vector<glm::vec2> circleLineIntersection(glm::vec2 c, float radius,
 std::vector<glm::vec3> addHeights(std::vector<glm::vec2> v, Terrain& terrain) {
   std::vector<glm::vec3> res;
   for (glm::vec2 p : v) {
-    res.push_back(glm::vec3(p.x, projectToTerrain(p, terrain), p.y));
+    res.push_back(glm::vec3(p.x, terrain.getHeightFromUV(p), p.y));
   }
 
   return res;
@@ -155,7 +108,7 @@ void GoalModel::generateModel(Terrain& terrain, glm::vec2 goalCenter,
     float x = radius * cosf(angle) + goalCenter.x;
     float y = radius * sinf(angle) + goalCenter.y;
     points[i].pos = glm::vec2(x, y);
-    points[i].height = projectToTerrain(points[i].pos, terrain);
+    points[i].height = terrain.getHeightFromUV(points[i].pos);
     points[i].row = y / vSpacing;
     points[i].col = x / hSpacing;
 

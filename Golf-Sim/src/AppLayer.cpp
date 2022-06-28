@@ -1,5 +1,6 @@
 #include "AppLayer.h"
 
+#include <glm/gtx/rotate_vector.hpp>
 #include <vector>
 
 #include "GLCore/Core/KeyCodes.h"
@@ -12,6 +13,7 @@ using namespace GLCore::Utils;
 
 AppLayer::AppLayer(GLFWwindow* window)
     : window(window),
+      renderFrameBuffer(2000, 2000),
       cameraController(glm::vec3(0, 5.0, 5.0), -90, 0, 45.0, 2.0 / 1.0, 3.0,
                        5.0, 0.1),
       balls{Ball(-1.0, 5.0f, 0.0, 0.25, glm::vec3(0.808f, 0.471f, 0.408f)),
@@ -55,9 +57,8 @@ AppLayer::AppLayer(GLFWwindow* window)
 
   terrain.addPhysics(physicsWorld, physicsCommon);
   goal.addPhysics(physicsWorld, physicsCommon);
-  for (Ball& ball : balls) {
-    ball.addPhysics(physicsWorld, physicsCommon);
-  }
+
+  initializeBalls();
 }
 
 AppLayer::~AppLayer() {}
@@ -70,6 +71,7 @@ void AppLayer::OnAttach() {
   // consistent vertex ordering (for use with collision library)
   // glEnable(GL_CULL_FACE);
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  glEnable(GL_DEPTH_TEST);
   isCursorControllingCamera = true;
 }
 
@@ -110,6 +112,7 @@ void AppLayer::OnEvent(Event& event) {
     return false;
   });
   dispatcher.Dispatch<GLCore::WindowResizeEvent>([&](WindowResizeEvent& e) {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, e.GetWidth(), e.GetHeight());
     return false;
   });
@@ -131,8 +134,6 @@ void AppLayer::update(Timestep ts) {
   }
 
   cameraController.update(ts);
-  glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   float interpolationFactor =
       physicsRunning ? physicsAccumulatedTime / desiredPhysicsTimeStep : 0;
@@ -153,6 +154,8 @@ void AppLayer::update(Timestep ts) {
 
 void AppLayer::render() {
   if (renderPhysicsDebugging) {
+    renderFrameBuffer.prepareForRender();
+
     physicsWorld->setIsDebugRenderingEnabled(true);
     reactphysics3d::DebugRenderer& debugRenderer =
         physicsWorld->getDebugRenderer();
@@ -244,12 +247,6 @@ void AppLayer::render() {
         vertexData.push_back(color3.x);
         vertexData.push_back(color3.y);
         vertexData.push_back(color3.z);
-
-        // printf("%f %f %f, %f %f %f, %f %f %f\n", trianglesArray[i].point1.x,
-        //        trianglesArray[i].point1.y, trianglesArray[i].point1.z,
-        //        trianglesArray[i].point2.x, trianglesArray[i].point2.y,
-        //        trianglesArray[i].point2.z, trianglesArray[i].point3.x,
-        //        trianglesArray[i].point3.y, trianglesArray[i].point3.z);
       }
 
       opengl::VertexArray vertexArray;
@@ -279,25 +276,10 @@ void AppLayer::render() {
     }
     lightDepthFrameBuffer0.unbind();
 
-    int width, height;
-    glfwGetWindowSize(window, &width, &height);
-    glViewport(0, 0, width, height);
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    renderFrameBuffer.prepareForRender();
 
     if (renderNormals) {
-      // for (Ball& ball : balls) {
-      //   ball.render(ballRenderer);
-      // }
-      // terrain.render(terrainRenderer, goal.getAbsolutePosition(terrain),
-      //                goal.getRadius());
       goal.render(goalRenderer);
-
-      // ballRenderer.render(ballModel, cameraController.getCamera(),
-      // lightScene,
-      //                     &visualizeNormalsShader);
-      // terrainRenderer.render(cameraController.getCamera(), lightScene,
-      //                        &visualizeNormalsShader);
       goalRenderer.render(cameraController.getCamera(), lightScene,
                           &visualizeNormalsShader);
     }
@@ -305,7 +287,8 @@ void AppLayer::render() {
     for (Ball& ball : balls) {
       ball.render(ballRenderer);
     }
-    terrain.render(terrainRenderer, startPosition, startPositionHighlightRadius, startPositionHighlightColor);
+    terrain.render(terrainRenderer, startPosition, startPositionHighlightRadius,
+                   startPositionHighlightColor);
     goal.render(goalRenderer);
 
     lightDepthFrameBuffer0.bindAsTexture();
@@ -313,9 +296,26 @@ void AppLayer::render() {
     terrainRenderer.render(cameraController.getCamera(), lightScene);
     goalRenderer.render(cameraController.getCamera(), lightScene);
   }
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  int windowWidth, windowHeight;
+  glfwGetWindowSize(window, &windowWidth, &windowHeight);
+  glViewport(0, 0, windowWidth, windowHeight);
 }
 
 void AppLayer::imGuiRender() {
+  ImGui::DockSpaceOverViewport();
+
+  ImGui::Begin("Viewport");
+  ImVec2 windowSize = ImGui::GetWindowSize();
+  ImGui::BeginChild("Render");
+  renderFrameBuffer.updateSize(windowSize.x, windowSize.y);
+  cameraController.updateSize(windowSize.x, windowSize.y);
+  ImGui::Image((ImTextureID) renderFrameBuffer.textureId, windowSize,
+               ImVec2(0, 1), ImVec2(1, 0));
+  ImGui::EndChild();  
+  ImGui::End();
+
   ImGui::Begin("General Settings");
   if (ImGui::Button("Start / Stop")) {
     physicsRunning = !physicsRunning;
@@ -327,7 +327,8 @@ void AppLayer::imGuiRender() {
                     0.0f, 0.25f);
   ImGui::DragFloat("Highlight Radius", &startPositionHighlightRadius, 0.01f,
                    0.0f, 1.0f);
-  ImGui::ColorEdit3("Highlight Color", glm::value_ptr(startPositionHighlightColor));
+  ImGui::ColorEdit3("Highlight Color",
+                    glm::value_ptr(startPositionHighlightColor));
 
   ImGui::End();
 
@@ -367,4 +368,56 @@ void AppLayer::imGuiRender() {
     terrainRenderer.reloadShader();
   }
   ImGui::End();
+}
+
+void AppLayer::initializeBalls() {
+  for (Ball& ball : balls) {
+    ball.removePhysics(physicsWorld, physicsCommon);
+  }
+  balls.clear();
+
+  glm::vec2 startPositionAbs = terrain.convertUV(startPosition);
+  glm::vec2 dirVector =
+      glm::normalize(goal.getAbsolutePosition(terrain) - startPositionAbs);
+
+  const float PI = 3.14159265f;
+
+  const int NUM_DIV = 10;
+
+  const float MIN_POWER = 0.0;
+  const float MAX_POWER = 3.0;
+  const float POWER_DIV = (MAX_POWER - MIN_POWER) / (NUM_DIV - 1);
+
+  const float MIN_YAW_OFFSET = -PI / 4;
+  const float MAX_YAW_OFFSET = PI / 4;
+  const float YAW_OFFSET_DIV =
+      (MAX_YAW_OFFSET - MIN_YAW_OFFSET) / (NUM_DIV - 1);
+
+  const float MIN_PITCH = 0.0;
+  const float MAX_PITCH = PI / 2;
+  const float PITCH_DIV = (MAX_PITCH - MIN_PITCH) / (NUM_DIV - 1);
+
+  for (int i = 0; i < NUM_DIV; i++) {
+    float power = MIN_POWER + POWER_DIV * i;
+    for (int j = 0; j < NUM_DIV; j++) {
+      float yawOffset = MIN_YAW_OFFSET + YAW_OFFSET_DIV * i;
+      for (int k = 0; k < NUM_DIV; k++) {
+        float pitch = MIN_PITCH + PITCH_DIV * i;
+
+        glm::vec2 rotatedYawDir = glm::rotate(dirVector, yawOffset);
+        glm::vec3 rotatedDir =
+            glm::rotateY(glm::vec3(rotatedYawDir.x, 0, rotatedYawDir.y), pitch);
+        glm::vec3 finalDir = rotatedDir * power;
+
+        Ball ball(startPositionAbs.x,
+                  terrain.getHeightFromUV(
+                      startPosition) /*+ terrain.getPosition().y*/,
+                  startPositionAbs.y, addBallRadius, addBallColor);
+        ball.addPhysics(physicsWorld, physicsCommon);
+        ball.setVelocity(finalDir);
+
+        balls.push_back(ball);
+      }
+    }
+  }
 }

@@ -45,6 +45,13 @@ class Terrain {
 
   float getMinHeight() { return minHeight; }
 
+  glm::vec2 convertUV(glm::vec2 uv) {
+    return glm::vec2 {(uv.x - 0.5) * mapWidth + position.x,
+                     (uv.y - 0.5) * mapHeight + position.z};
+  }
+
+  float getHeightFromUV(glm::vec2 uv);
+
  private:
   int numRows;
   int numCols;
