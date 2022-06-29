@@ -29,7 +29,7 @@ AppLayer::AppLayer(GLFWwindow* window)
       primitiveShader("assets/shaders/PrimitiveShader.vert",
                       "assets/shaders/PrimitiveShader.frag"),
       lightDepthFrameBuffer0(1024, 1024),
-      startPosition(0.0, 0.0),
+      startPosition(0.2, 0.2),
       startPositionHighlightRadius(0.1),
       startPositionHighlightColor(1.0f, 0.843f, 0),
       addBallPosition(-1.0, 5.0f, 0.0),
@@ -161,13 +161,13 @@ void AppLayer::render() {
         physicsWorld->getDebugRenderer();
     debugRenderer.setIsDebugItemDisplayed(
         reactphysics3d::DebugRenderer::DebugItem::COLLIDER_AABB, true);
-    debugRenderer.setIsDebugItemDisplayed(
-        reactphysics3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
+    //debugRenderer.setIsDebugItemDisplayed(
+    //    reactphysics3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
 
-    debugRenderer.setIsDebugItemDisplayed(
-        reactphysics3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true);
-    debugRenderer.setIsDebugItemDisplayed(
-        reactphysics3d::DebugRenderer::DebugItem::CONTACT_POINT, true);
+    //debugRenderer.setIsDebugItemDisplayed(
+    //    reactphysics3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true);
+    //debugRenderer.setIsDebugItemDisplayed(
+    //    reactphysics3d::DebugRenderer::DebugItem::CONTACT_POINT, true);
 
     debugRenderer.computeDebugRenderingPrimitives(*physicsWorld);
 
@@ -311,9 +311,9 @@ void AppLayer::imGuiRender() {
   ImGui::BeginChild("Render");
   renderFrameBuffer.updateSize(windowSize.x, windowSize.y);
   cameraController.updateSize(windowSize.x, windowSize.y);
-  ImGui::Image((ImTextureID) renderFrameBuffer.textureId, windowSize,
+  ImGui::Image((ImTextureID)renderFrameBuffer.textureId, windowSize,
                ImVec2(0, 1), ImVec2(1, 0));
-  ImGui::EndChild();  
+  ImGui::EndChild();
   ImGui::End();
 
   ImGui::Begin("General Settings");
@@ -322,6 +322,9 @@ void AppLayer::imGuiRender() {
     if (physicsRunning) {
       justStartedPhysics = true;
     }
+  }
+  if (ImGui::Button("Reset Balls")) {
+    initializeBalls();
   }
   ImGui::DragFloat2("Start Position", glm::value_ptr(startPosition), 0.05f,
                     0.0f, 0.25f);
@@ -379,13 +382,14 @@ void AppLayer::initializeBalls() {
   glm::vec2 startPositionAbs = terrain.convertUV(startPosition);
   glm::vec2 dirVector =
       glm::normalize(goal.getAbsolutePosition(terrain) - startPositionAbs);
+  glm::vec2 perpVector(-dirVector.y, dirVector.x);
 
   const float PI = 3.14159265f;
 
-  const int NUM_DIV = 10;
+  const int NUM_DIV = 4;
 
   const float MIN_POWER = 0.0;
-  const float MAX_POWER = 3.0;
+  const float MAX_POWER = 5.0;
   const float POWER_DIV = (MAX_POWER - MIN_POWER) / (NUM_DIV - 1);
 
   const float MIN_YAW_OFFSET = -PI / 4;
@@ -400,18 +404,22 @@ void AppLayer::initializeBalls() {
   for (int i = 0; i < NUM_DIV; i++) {
     float power = MIN_POWER + POWER_DIV * i;
     for (int j = 0; j < NUM_DIV; j++) {
-      float yawOffset = MIN_YAW_OFFSET + YAW_OFFSET_DIV * i;
+      float yawOffset = MIN_YAW_OFFSET + YAW_OFFSET_DIV * j;
       for (int k = 0; k < NUM_DIV; k++) {
-        float pitch = MIN_PITCH + PITCH_DIV * i;
+        float pitch = MIN_PITCH + PITCH_DIV * k;
 
         glm::vec2 rotatedYawDir = glm::rotate(dirVector, yawOffset);
+        glm::vec2 rotatedPerp = glm::rotate(perpVector, yawOffset);
         glm::vec3 rotatedDir =
-            glm::rotateY(glm::vec3(rotatedYawDir.x, 0, rotatedYawDir.y), pitch);
+            glm::rotate(glm::vec3(rotatedYawDir.x, 0, rotatedYawDir.y), pitch,
+                        glm::vec3(rotatedPerp.x, 0, rotatedPerp.y));
         glm::vec3 finalDir = rotatedDir * power;
 
         Ball ball(startPositionAbs.x,
-                  terrain.getHeightFromUV(
-                      startPosition) /*+ terrain.getPosition().y*/,
+                  terrain.getHeightFromRelative(
+                      glm::vec2(startPosition.x * terrain.getWidth(),
+                                startPosition.y * terrain.getHeight())) +
+                      terrain.getPosition().y + addBallRadius * 2,
                   startPositionAbs.y, addBallRadius, addBallColor);
         ball.addPhysics(physicsWorld, physicsCommon);
         ball.setVelocity(finalDir);

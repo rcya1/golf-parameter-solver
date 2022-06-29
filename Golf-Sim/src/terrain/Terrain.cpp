@@ -159,9 +159,9 @@ void printVec3(glm::vec3 vec) {
   std::cout << vec.x << " : " << vec.y << " : " << vec.z << std::endl;
 }
 
-float Terrain::getHeightFromUV(glm::vec2 uv) {
-  float x = uv.x;
-  float y = uv.y;
+float Terrain::getHeightFromRelative(glm::vec2 rel) {
+  float x = rel.x;
+  float y = rel.y;
 
   float hSpacing = getHSpacing();
   float vSpacing = getVSpacing();
@@ -184,8 +184,8 @@ float Terrain::getHeightFromUV(glm::vec2 uv) {
   glm::vec3 topRight = glm::vec3(tr, getHeight(col + 1, row + 1), tt);
   glm::vec3 botLeft = glm::vec3(tl, getHeight(col, row), tb);
   glm::vec3 botRight = glm::vec3(tr, getHeight(col + 1, row), tb);
-  float height = isTopRight ? projectToPlane(uv, topLeft, topRight, botRight)
-                            : projectToPlane(uv, topLeft, botRight, botLeft);
+  float height = isTopRight ? projectToPlane(rel, topLeft, topRight, botRight)
+                            : projectToPlane(rel, topLeft, botRight, botLeft);
 
   return height;
 }

@@ -72,7 +72,7 @@ std::vector<glm::vec2> circleLineIntersection(glm::vec2 c, float radius,
 std::vector<glm::vec3> addHeights(std::vector<glm::vec2> v, Terrain& terrain) {
   std::vector<glm::vec3> res;
   for (glm::vec2 p : v) {
-    res.push_back(glm::vec3(p.x, terrain.getHeightFromUV(p), p.y));
+    res.push_back(glm::vec3(p.x, terrain.getHeightFromRelative(p), p.y));
   }
 
   return res;
@@ -108,7 +108,7 @@ void GoalModel::generateModel(Terrain& terrain, glm::vec2 goalCenter,
     float x = radius * cosf(angle) + goalCenter.x;
     float y = radius * sinf(angle) + goalCenter.y;
     points[i].pos = glm::vec2(x, y);
-    points[i].height = terrain.getHeightFromUV(points[i].pos);
+    points[i].height = terrain.getHeightFromRelative(points[i].pos);
     points[i].row = y / vSpacing;
     points[i].col = x / hSpacing;
 

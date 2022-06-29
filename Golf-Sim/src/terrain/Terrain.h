@@ -50,7 +50,7 @@ class Terrain {
                      (uv.y - 0.5) * mapHeight + position.z};
   }
 
-  float getHeightFromUV(glm::vec2 uv);
+  float getHeightFromRelative(glm::vec2 uv);
 
  private:
   int numRows;
