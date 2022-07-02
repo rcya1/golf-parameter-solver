@@ -21,7 +21,7 @@ void TerrainRenderer::render(opengl::PerspectiveCamera& camera,
   shader->activate();
   shader->setVec3f("material.ambient", 0.0f, 0.0f, 0.0f);
   shader->setVec3f("material.specular", 0.025f, 0.025f, 0.025f);
-  shader->setFloat("material.shininess", 2);
+  shader->setFloat("material.shininess", 1);
   shader->setVec3f("viewPos", camera.getPos());
   shader->setMat4f("view", false, camera.getViewMatrix());
   shader->setMat4f("projection", false, camera.getProjectionMatrix());

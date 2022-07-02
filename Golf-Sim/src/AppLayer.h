@@ -33,7 +33,9 @@ class AppLayer : public GLCore::Layer {
   void render();
   virtual void imGuiRender() override;
 
-  void initializeBalls();
+  void initializeBallsSimultaneous();
+  void initializeBallsStaggered();
+  void addBall(float power, float yawOffset, float pitch);
 
  private:
   GLFWwindow* window;
@@ -62,6 +64,15 @@ class AppLayer : public GLCore::Layer {
   glm::vec2 startPosition;
   float startPositionHighlightRadius;
   glm::vec3 startPositionHighlightColor;
+
+  const float PI = 3.14159265f;
+  int paramsNumDivisions = 6;
+  float minPower = 3.0;
+  float maxPower = 15.0;
+  float minPitch = 0.0;
+  float maxPitch = PI / 3;
+  float minYaw = -PI / 4;
+  float maxYaw = PI / 4;
 
   Terrain terrain;
   TerrainRenderer terrainRenderer;

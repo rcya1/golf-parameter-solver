@@ -76,6 +76,9 @@ void Ball::update(GLCore::Timestep ts, Terrain& terrain, Goal& goal,
         sphereShape, reactphysics3d::Transform::identity());
     this->collider->setCollisionCategoryBits(CollisionCategory::BALL);
     this->collider->setCollideWithMaskBits(CollisionCategory::GOAL);
+    this->collider->getMaterial().setBounciness(BOUNCINESS);
+    this->collider->getMaterial().setFrictionCoefficient(FRICTION);
+    this->collider->getMaterial().setMassDensity(MATERIAL_DENSITY);
     nearGoal = true;
   } else if (nearGoal && !newNearGoal) {
     this->rigidBody->removeCollider(this->collider);
@@ -83,6 +86,9 @@ void Ball::update(GLCore::Timestep ts, Terrain& terrain, Goal& goal,
         sphereShape, reactphysics3d::Transform::identity());
     this->collider->setCollisionCategoryBits(CollisionCategory::BALL);
     this->collider->setCollideWithMaskBits(CollisionCategory::TERRAIN);
+    this->collider->getMaterial().setBounciness(BOUNCINESS);
+    this->collider->getMaterial().setFrictionCoefficient(FRICTION);
+    this->collider->getMaterial().setMassDensity(MATERIAL_DENSITY);
     nearGoal = false;
   }
 
@@ -196,6 +202,9 @@ void Ball::addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
       sphereShape, reactphysics3d::Transform::identity());
   this->collider->setCollisionCategoryBits(CollisionCategory::BALL);
   this->collider->setCollideWithMaskBits(CollisionCategory::TERRAIN);
+  this->collider->getMaterial().setBounciness(BOUNCINESS);
+  this->collider->getMaterial().setFrictionCoefficient(FRICTION);
+  this->collider->getMaterial().setMassDensity(MATERIAL_DENSITY);
 }
 
 void Ball::removePhysics(reactphysics3d::PhysicsWorld* physicsWorld,

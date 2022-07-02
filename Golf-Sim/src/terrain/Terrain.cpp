@@ -136,6 +136,8 @@ void Terrain::addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
   this->collider = this->rigidBody->addCollider(shape, shapeTransform);
   this->collider->setCollisionCategoryBits(CollisionCategory::TERRAIN);
   this->collider->setCollideWithMaskBits(CollisionCategory::BALL);
+  this->collider->getMaterial().setBounciness(0.2);
+  this->collider->getMaterial().setFrictionCoefficient(0.6);
 }
 
 void Terrain::removePhysics(reactphysics3d::PhysicsWorld* physicsWorld,

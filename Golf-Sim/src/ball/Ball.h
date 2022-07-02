@@ -33,6 +33,10 @@ class Ball {
   bool isOutOfBounds(Terrain& terrain);
 
  private:
+  const float BOUNCINESS = 0.2;
+  const float FRICTION = 0.6;
+  const float MATERIAL_DENSITY = 10.0;
+
   glm::vec3 position;
   float radius;
   glm::vec3 color;
