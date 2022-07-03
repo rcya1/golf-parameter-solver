@@ -51,6 +51,10 @@ class AppLayer : public GLCore::Layer {
   opengl::Shader visualizeNormalsShader;
   opengl::Shader primitiveShader;
 
+  bool showSidebar = true;
+  float dpiScale = -1;
+  bool updateFont = false;
+
   std::vector<Ball> balls;
   std::queue<Ball> ballsAdd;
   BallModel ballModel;

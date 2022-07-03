@@ -15,8 +15,6 @@ void TimeMetrics::update(GLCore::Timestep& ts) {
 }
 
 void TimeMetrics::imGuiRender() {
-  ImGui::Begin("Time Metrics");
-
   float average[] = {sum / num};
 
   if (ImGui::SliderFloat("History", &historyLength, 1, 30, "%.1f s")) {
@@ -51,6 +49,4 @@ void TimeMetrics::imGuiRender() {
   std::string averageText = "Average Time (ms): ";
   averageText += std::to_string(average[0]);
   ImGui::Text(averageText.c_str());
-
-  ImGui::End();
 }

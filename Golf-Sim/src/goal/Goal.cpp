@@ -30,7 +30,6 @@ void Goal::render(GoalRenderer& renderer) {
 void Goal::imGuiRender(reactphysics3d::PhysicsWorld* physicsWorld,
                        reactphysics3d::PhysicsCommon& physicsCommon,
                        Terrain& terrain) {
-  ImGui::Begin("Goal Controls");
   ImGui::DragFloat2("Position", glm::value_ptr(relativePosition), 0.01f, 0.0f,
                     1.0f);
   ImGui::DragFloat("Radius", &radius, 0.1f, 0.1f, 5.0f);
@@ -41,7 +40,6 @@ void Goal::imGuiRender(reactphysics3d::PhysicsWorld* physicsWorld,
     removePhysics(physicsWorld, physicsCommon);
     addPhysics(physicsWorld, physicsCommon);
   }
-  ImGui::End();
 }
 
 void Goal::addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,

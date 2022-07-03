@@ -8,12 +8,14 @@
 #include "util/opengl/VertexArray.h"
 #include "util/opengl/VertexBuffer.h"
 
+#include "backends/imgui_impl_opengl3.h"
+
 using namespace GLCore;
 using namespace GLCore::Utils;
 
 AppLayer::AppLayer(GLFWwindow* window)
     : window(window),
-      renderFrameBuffer(2000, 2000),
+      renderFrameBuffer(10000, 10000),
       cameraController(glm::vec3(0, 5.0, 5.0), -90, 0, 45.0, 2.0 / 1.0, 3.0,
                        5.0, 0.1),
       balls{Ball(-1.0, 5.0f, 0.0, 0.25, glm::vec3(0.808f, 0.471f, 0.408f)),
@@ -78,6 +80,10 @@ void AppLayer::OnAttach() {
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   glEnable(GL_DEPTH_TEST);
   isCursorControllingCamera = true;
+
+  ImGui::GetIO().Fonts->ClearFonts();
+  ImGui::GetIO().Fonts->AddFontFromFileTTF("assets/fonts/Roboto-Medium.ttf",
+                                           13);
 }
 
 void AppLayer::OnDetach() {
@@ -155,6 +161,16 @@ void AppLayer::update(Timestep ts) {
   render();
 
   timeMetrics.update(ts);
+
+  // update font if the DPI scale has changed
+  if (updateFont) {
+    ImGui::GetIO().Fonts->Clear();
+    ImGui::GetIO().Fonts->AddFontFromFileTTF("assets/fonts/Roboto-Medium.ttf",
+                                             static_cast<int>(13 * dpiScale));
+    ImGui::GetIO().Fonts->Build();
+    ImGui_ImplOpenGL3_CreateFontsTexture();
+    updateFont = false;
+  }
 }
 
 void AppLayer::render() {
@@ -306,6 +322,7 @@ void AppLayer::render() {
     goalRenderer.render(cameraController.getCamera(), lightScene);
   }
 
+  // prepare render for ImGui
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   int windowWidth, windowHeight;
   glfwGetWindowSize(window, &windowWidth, &windowHeight);
@@ -313,9 +330,42 @@ void AppLayer::render() {
 }
 
 void AppLayer::imGuiRender() {
+  if (dpiScale != ImGui::GetWindowDpiScale() &&
+      ImGui::GetWindowDpiScale() != 0.0) {
+    dpiScale = ImGui::GetWindowDpiScale();
+    updateFont = true;
+  }
+
+  bool showRenderMenu = false;
+
+  if (ImGui::BeginMainMenuBar()) {
+    if (ImGui::RadioButton("Show Sidebar", showSidebar)) {
+      showSidebar = !showSidebar;
+    }
+    if (ImGui::BeginMenu("Debugging")) {
+      ImGui::Checkbox("Shadows", &renderShadows);
+      ImGui::Checkbox("Normals", &renderNormals);
+      ImGui::Checkbox("Physics Debugging", &renderPhysicsDebugging);
+      if (ImGui::Button("Reload Shaders")) {
+        lightDepthShader.load();
+        ballRenderer.reloadShader();
+        goalRenderer.reloadShader();
+        terrainRenderer.reloadShader();
+      }
+      ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Time Metrics")) {
+      timeMetrics.imGuiRender();
+      ImGui::EndMenu();
+    }
+    ImGui::EndMainMenuBar();
+  }
+
   ImGui::DockSpaceOverViewport();
 
-  ImGui::Begin("Viewport");
+  ImGui::Begin("Viewport", NULL,
+               ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
   ImVec2 windowSize = ImGui::GetContentRegionAvail();
   ImGui::BeginChild("Render");
   renderFrameBuffer.updateSize(windowSize.x, windowSize.y);
@@ -325,68 +375,68 @@ void AppLayer::imGuiRender() {
   ImGui::EndChild();
   ImGui::End();
 
-  ImGui::Begin("Simulation Settings");
-  if (ImGui::Button("Start / Stop")) {
-    physicsRunning = !physicsRunning;
-    if (physicsRunning) {
-      justStartedPhysics = true;
+  if (showSidebar) {
+    ImGui::Begin("Simulation", NULL, ImGuiWindowFlags_NoMove);
+    if (ImGui::Button("Start / Stop")) {
+      physicsRunning = !physicsRunning;
+      if (physicsRunning) {
+        justStartedPhysics = true;
+      }
     }
-  }
-  if (ImGui::Button("Reset Balls (Simultaneous)")) {
-    initializeBallsSimultaneous();
-  }
-  if (ImGui::Button("Reset Balls (Staggered)")) {
-    initializeBallsStaggered();
-  }
-  ImGui::DragFloat2("Start Position", glm::value_ptr(startPosition), 0.05f,
-                    0.0f, 0.25f);
-  ImGui::DragFloat("Highlight Radius", &startPositionHighlightRadius, 0.01f,
-                   0.0f, 1.0f);
-  ImGui::ColorEdit3("Highlight Color",
-                    glm::value_ptr(startPositionHighlightColor));
-  ImGui::DragInt("# Balls per Dimension", &paramsNumDivisions, 0.25, 1, 15);
-  ImGui::DragFloatRange2("Power", &minPower, &maxPower, 0.25f, 0.0f, 30.0);
-  ImGui::DragFloatRange2("Yaw", &minYaw, &maxYaw, 0.25f, -PI / 2, PI / 2);
-  ImGui::DragFloatRange2("Pitch", &minPitch, &maxPitch, 0.25f, 0.0f, PI / 2);
 
-  ImGui::End();
-
-  ImGui::Begin("Balls");
-  for (int i = 0; i < balls.size(); i++) {
-    balls[i].imGuiRender(i, physicsWorld, physicsCommon);
-  }
-  ImGui::Begin("Add Ball");
-  ImGui::DragFloat3("Position", glm::value_ptr(addBallPosition), 1.0f, -10.0f,
-                    10.0f);
-  ImGui::DragFloat("Radius", &addBallRadius, 0.01f, 0.01f, 2.0f);
-  ImGui::ColorEdit3("Color", glm::value_ptr(addBallColor));
-  ImGui::Checkbox("Has Physics", &addBallHasPhysics);
-  if (ImGui::Button("Add")) {
-    Ball ball = Ball(addBallPosition.x, addBallPosition.y, addBallPosition.z,
-                     addBallRadius, addBallColor);
-    if (addBallHasPhysics) {
-      ball.addPhysics(physicsWorld, physicsCommon);
+    ImGui::Text("Reset Balls");
+    if (ImGui::Button("Simultaneous")) {
+      initializeBallsSimultaneous();
     }
-    ballsAdd.push(ball);
-  }
-  ImGui::End();
-  ImGui::End();
+    ImGui::SameLine();
+    if (ImGui::Button("Staggered")) {
+      initializeBallsStaggered();
+    }
 
-  terrain.imGuiRender(goal, physicsWorld, physicsCommon);
-  goal.imGuiRender(physicsWorld, physicsCommon, terrain);
-  timeMetrics.imGuiRender();
+    ImGui::Separator();
 
-  ImGui::Begin("Rendering");
-  ImGui::Checkbox("Shadows", &renderShadows);
-  ImGui::Checkbox("Normals", &renderNormals);
-  ImGui::Checkbox("Physics Debugging", &renderPhysicsDebugging);
-  if (ImGui::Button("Reload Shaders")) {
-    lightDepthShader.load();
-    ballRenderer.reloadShader();
-    goalRenderer.reloadShader();
-    terrainRenderer.reloadShader();
+    ImGui::DragFloat2("Start Position", glm::value_ptr(startPosition), 0.05f,
+                      0.0f, 0.25f);
+    ImGui::DragFloat("Highlight Radius", &startPositionHighlightRadius, 0.01f,
+                     0.0f, 1.0f);
+    ImGui::ColorEdit3("Highlight Color",
+                      glm::value_ptr(startPositionHighlightColor));
+    ImGui::DragInt("# Balls per Dimension", &paramsNumDivisions, 0.25, 1, 15);
+    ImGui::DragFloatRange2("Power", &minPower, &maxPower, 0.25f, 0.0f, 30.0);
+    ImGui::DragFloatRange2("Yaw", &minYaw, &maxYaw, 0.25f, -PI / 2, PI / 2);
+    ImGui::DragFloatRange2("Pitch", &minPitch, &maxPitch, 0.25f, 0.0f, PI / 2);
+
+    ImGui::End();
+
+    ImGui::Begin("Balls", NULL, ImGuiWindowFlags_NoMove);
+    for (int i = 0; i < balls.size(); i++) {
+      balls[i].imGuiRender(i, physicsWorld, physicsCommon);
+    }
+    ImGui::Begin("Add Ball");
+    ImGui::DragFloat3("Position", glm::value_ptr(addBallPosition), 1.0f, -10.0f,
+                      10.0f);
+    ImGui::DragFloat("Radius", &addBallRadius, 0.01f, 0.01f, 2.0f);
+    ImGui::ColorEdit3("Color", glm::value_ptr(addBallColor));
+    ImGui::Checkbox("Has Physics", &addBallHasPhysics);
+    if (ImGui::Button("Add")) {
+      Ball ball = Ball(addBallPosition.x, addBallPosition.y, addBallPosition.z,
+                       addBallRadius, addBallColor);
+      if (addBallHasPhysics) {
+        ball.addPhysics(physicsWorld, physicsCommon);
+      }
+      ballsAdd.push(ball);
+    }
+    ImGui::End();
+    ImGui::End();
+
+    ImGui::Begin("Terrain Controls", NULL, ImGuiWindowFlags_NoMove);
+    terrain.imGuiRender(goal, physicsWorld, physicsCommon);
+    ImGui::End();
+
+    ImGui::Begin("Goal Controls", NULL, ImGuiWindowFlags_NoMove);
+    goal.imGuiRender(physicsWorld, physicsCommon, terrain);
+    ImGui::End();
   }
-  ImGui::End();
 }
 
 void AppLayer::initializeBallsSimultaneous() {

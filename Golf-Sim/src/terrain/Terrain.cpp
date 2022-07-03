@@ -89,7 +89,6 @@ void Terrain::render(TerrainRenderer& renderer, glm::vec2 startPosition, float h
 void Terrain::imGuiRender(Goal& goal,
                           reactphysics3d::PhysicsWorld* physicsWorld,
                           reactphysics3d::PhysicsCommon& physicsCommon) {
-  ImGui::Begin("Terrain Controls");
   if (ImGui::DragFloat3("Position", glm::value_ptr(position), 0.5f, -10.0f,
                         10.0f)) {
     reactphysics3d::Vector3 position(position.x, position.y, position.z);
@@ -112,7 +111,6 @@ void Terrain::imGuiRender(Goal& goal,
     removePhysics(physicsWorld, physicsCommon);
     addPhysics(physicsWorld, physicsCommon);
   }
-  ImGui::End();
 }
 
 void Terrain::addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
