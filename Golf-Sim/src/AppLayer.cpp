@@ -4,11 +4,10 @@
 #include <vector>
 
 #include "GLCore/Core/KeyCodes.h"
+#include "backends/imgui_impl_opengl3.h"
 #include "util/DebugColors.h"
 #include "util/opengl/VertexArray.h"
 #include "util/opengl/VertexBuffer.h"
-
-#include "backends/imgui_impl_opengl3.h"
 
 using namespace GLCore;
 using namespace GLCore::Utils;
@@ -16,11 +15,9 @@ using namespace GLCore::Utils;
 AppLayer::AppLayer(GLFWwindow* window)
     : window(window),
       renderFrameBuffer(10000, 10000),
-      cameraController(glm::vec3(0, 5.0, 5.0), -90, 0, 45.0, 2.0 / 1.0, 3.0,
+      cameraController(glm::vec3(0, 5.0, 5.0), -90, 0, 45.0, 2.0 / 1.0, 5.0,
                        5.0, 0.1),
-      balls{Ball(-1.0, 5.0f, 0.0, 0.25, glm::vec3(0.808f, 0.471f, 0.408f)),
-            Ball(1.0, 5.0f, 0.0, 0.25, glm::vec3(0.408f, 0.471f, 0.808f)),
-            Ball(0.0, 0.0, 0.0, 0.25, glm::vec3(1.0f, 0.0f, 0.0f))},
+      balls {},
       goal(0.5, 0.5, 0.5),
       terrain(glm::vec3(0.0, 0.0, 0.0), 100, 100, 50.0f, 50.0f, 10.0f, 5.0f),
       lightDepthShader("assets/shaders/LightDepthVertexShader.vert",
@@ -39,15 +36,10 @@ AppLayer::AppLayer(GLFWwindow* window)
       addBallColor(0.808f, 0.471f, 0.408f) {
   lightScene = lights::LightScene{
       std::vector<lights::PointLight>{
-          lights::createBasicPointLight(glm::vec3(25.0f, 25.0f, 25.0f)),
-          lights::createBasicPointLight(glm::vec3(25.0f, 25.0f, -25.0f)),
-          lights::createBasicPointLight(glm::vec3(-25.0f, 25.0f, 25.0f)),
+          lights::createBasicPointLight(glm::vec3( 25.0f, 25.0f,  25.0f)),
+          lights::createBasicPointLight(glm::vec3( 25.0f, 25.0f, -25.0f)),
+          lights::createBasicPointLight(glm::vec3(-25.0f, 25.0f,  25.0f)),
           lights::createBasicPointLight(glm::vec3(-25.0f, 25.0f, -25.0f)),
-          // lights::createBasicPointLight(glm::vec3(25.0f, -25.0f, 25.0f)),
-          // lights::createBasicPointLight(glm::vec3(25.0f, -25.0f, -25.0f)),
-          // lights::createBasicPointLight(glm::vec3(-25.0f, -25.0f, 25.0f)),
-          // lights::createBasicPointLight(glm::vec3(-25.0f, -25.0f, -25.0f)),
-
           lights::createBasicPointLight(glm::vec3(0.0f, 20.0f, 0.0f)),
       },
       std::vector<lights::DirLight>{
@@ -329,7 +321,64 @@ void AppLayer::render() {
   glViewport(0, 0, windowWidth, windowHeight);
 }
 
+inline void SetupImGuiStyle() {
+  ImGui::GetStyle().FrameRounding = 4.0f;
+  ImGui::GetStyle().GrabRounding = 4.0f;
+
+  ImVec4* colors = ImGui::GetStyle().Colors;
+  colors[ImGuiCol_Text] = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
+  colors[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
+  colors[ImGuiCol_WindowBg] = ImVec4(0.11f, 0.15f, 0.17f, 1.00f);
+  colors[ImGuiCol_ChildBg] = ImVec4(0.15f, 0.18f, 0.22f, 1.00f);
+  colors[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 0.94f);
+  colors[ImGuiCol_Border] = ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
+  colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+  colors[ImGuiCol_FrameBg] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
+  colors[ImGuiCol_FrameBgHovered] = ImVec4(0.12f, 0.20f, 0.28f, 1.00f);
+  colors[ImGuiCol_FrameBgActive] = ImVec4(0.09f, 0.12f, 0.14f, 1.00f);
+  colors[ImGuiCol_TitleBg] = ImVec4(0.09f, 0.12f, 0.14f, 0.65f);
+  colors[ImGuiCol_TitleBgActive] = ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
+  colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
+  colors[ImGuiCol_MenuBarBg] = ImVec4(0.15f, 0.18f, 0.22f, 1.00f);
+  colors[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.39f);
+  colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
+  colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.18f, 0.22f, 0.25f, 1.00f);
+  colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.09f, 0.21f, 0.31f, 1.00f);
+  colors[ImGuiCol_CheckMark] = ImVec4(0.28f, 0.56f, 1.00f, 1.00f);
+  colors[ImGuiCol_SliderGrab] = ImVec4(0.28f, 0.56f, 1.00f, 1.00f);
+  colors[ImGuiCol_SliderGrabActive] = ImVec4(0.37f, 0.61f, 1.00f, 1.00f);
+  colors[ImGuiCol_Button] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
+  colors[ImGuiCol_ButtonHovered] = ImVec4(0.28f, 0.56f, 1.00f, 1.00f);
+  colors[ImGuiCol_ButtonActive] = ImVec4(0.06f, 0.53f, 0.98f, 1.00f);
+  colors[ImGuiCol_Header] = ImVec4(0.20f, 0.25f, 0.29f, 0.55f);
+  colors[ImGuiCol_HeaderHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
+  colors[ImGuiCol_HeaderActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+  colors[ImGuiCol_Separator] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
+  colors[ImGuiCol_SeparatorHovered] = ImVec4(0.10f, 0.40f, 0.75f, 0.78f);
+  colors[ImGuiCol_SeparatorActive] = ImVec4(0.10f, 0.40f, 0.75f, 1.00f);
+  colors[ImGuiCol_ResizeGrip] = ImVec4(0.26f, 0.59f, 0.98f, 0.25f);
+  colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
+  colors[ImGuiCol_ResizeGripActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
+  colors[ImGuiCol_Tab] = ImVec4(0.11f, 0.15f, 0.17f, 1.00f);
+  colors[ImGuiCol_TabHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
+  colors[ImGuiCol_TabActive] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
+  colors[ImGuiCol_TabUnfocused] = ImVec4(0.11f, 0.15f, 0.17f, 1.00f);
+  colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.11f, 0.15f, 0.17f, 1.00f);
+  colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
+  colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
+  colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
+  colors[ImGuiCol_PlotHistogramHovered] = ImVec4(1.00f, 0.60f, 0.00f, 1.00f);
+  colors[ImGuiCol_TextSelectedBg] = ImVec4(0.26f, 0.59f, 0.98f, 0.35f);
+  colors[ImGuiCol_DragDropTarget] = ImVec4(1.00f, 1.00f, 0.00f, 0.90f);
+  colors[ImGuiCol_NavHighlight] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+  colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+  colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+  colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+}
+
 void AppLayer::imGuiRender() {
+  SetupImGuiStyle();
+
   if (dpiScale != ImGui::GetWindowDpiScale() &&
       ImGui::GetWindowDpiScale() != 0.0) {
     dpiScale = ImGui::GetWindowDpiScale();
@@ -339,9 +388,10 @@ void AppLayer::imGuiRender() {
   bool showRenderMenu = false;
 
   if (ImGui::BeginMainMenuBar()) {
-    if (ImGui::RadioButton("Show Sidebar", showSidebar)) {
-      showSidebar = !showSidebar;
-    }
+    ImGui::Checkbox("Show Sidebar", &showSidebar);
+    ImGui::Separator();
+    ImGui::Checkbox("Time Metrics", &showTimeMetrics);
+    ImGui::Separator();
     if (ImGui::BeginMenu("Debugging")) {
       ImGui::Checkbox("Shadows", &renderShadows);
       ImGui::Checkbox("Normals", &renderNormals);
@@ -352,11 +402,6 @@ void AppLayer::imGuiRender() {
         goalRenderer.reloadShader();
         terrainRenderer.reloadShader();
       }
-      ImGui::EndMenu();
-    }
-
-    if (ImGui::BeginMenu("Time Metrics")) {
-      timeMetrics.imGuiRender();
       ImGui::EndMenu();
     }
     ImGui::EndMainMenuBar();
@@ -377,23 +422,46 @@ void AppLayer::imGuiRender() {
 
   if (showSidebar) {
     ImGui::Begin("Simulation", NULL, ImGuiWindowFlags_NoMove);
+    ImGui::PushStyleColor(ImGuiCol_Button,
+                          ImVec4(0 / 255.0f, 162 / 255.0f, 62 / 255.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                          ImVec4(0 / 255.0f, 130 / 255.0f, 50 / 255.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                          ImVec4(0 / 255.0f, 104 / 255.0f, 40 / 255.0f, 1.0f));
     if (ImGui::Button("Start / Stop")) {
       physicsRunning = !physicsRunning;
       if (physicsRunning) {
         justStartedPhysics = true;
       }
     }
+    ImGui::PopStyleColor(3);
 
-    ImGui::Text("Reset Balls");
-    if (ImGui::Button("Simultaneous")) {
-      initializeBallsSimultaneous();
+    ImGui::PushStyleColor(ImGuiCol_Button,
+                          ImVec4(222 / 255.0f, 5 / 255.0f, 0 / 255.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                          ImVec4(178 / 255.0f, 4 / 255.0f, 0 / 255.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                          ImVec4(142 / 255.0f, 3 / 255.0f, 0 / 255.0f, 1.0f));
+    if (ImGui::Button("Reset Balls")) {
+      if (initSimultaneous) {
+        initializeBallsSimultaneous();
+      }
+      else {
+        initializeBallsStaggered();
+      }
+    }
+    ImGui::PopStyleColor(3);
+
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Simultaneous", initSimultaneous)) {
+      initSimultaneous = true;
     }
     ImGui::SameLine();
-    if (ImGui::Button("Staggered")) {
-      initializeBallsStaggered();
+    if (ImGui::RadioButton("Staggered", !initSimultaneous)) {
+      initSimultaneous = false;
     }
 
-    ImGui::Separator();
+    ImGui::NewLine();
 
     ImGui::DragFloat2("Start Position", glm::value_ptr(startPosition), 0.05f,
                       0.0f, 0.25f);
@@ -401,7 +469,10 @@ void AppLayer::imGuiRender() {
                      0.0f, 1.0f);
     ImGui::ColorEdit3("Highlight Color",
                       glm::value_ptr(startPositionHighlightColor));
-    ImGui::DragInt("# Balls per Dimension", &paramsNumDivisions, 0.25, 1, 15);
+
+    ImGui::NewLine();
+
+    ImGui::DragInt("# Balls per Dim", &paramsNumDivisions, 0.25, 1, 15);
     ImGui::DragFloatRange2("Power", &minPower, &maxPower, 0.25f, 0.0f, 30.0);
     ImGui::DragFloatRange2("Yaw", &minYaw, &maxYaw, 0.25f, -PI / 2, PI / 2);
     ImGui::DragFloatRange2("Pitch", &minPitch, &maxPitch, 0.25f, 0.0f, PI / 2);
@@ -418,6 +489,13 @@ void AppLayer::imGuiRender() {
     ImGui::DragFloat("Radius", &addBallRadius, 0.01f, 0.01f, 2.0f);
     ImGui::ColorEdit3("Color", glm::value_ptr(addBallColor));
     ImGui::Checkbox("Has Physics", &addBallHasPhysics);
+
+    ImGui::PushStyleColor(ImGuiCol_Button,
+                          ImVec4(0 / 255.0f, 162 / 255.0f, 62 / 255.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                          ImVec4(0 / 255.0f, 130 / 255.0f, 50 / 255.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                          ImVec4(0 / 255.0f, 104 / 255.0f, 40 / 255.0f, 1.0f));
     if (ImGui::Button("Add")) {
       Ball ball = Ball(addBallPosition.x, addBallPosition.y, addBallPosition.z,
                        addBallRadius, addBallColor);
@@ -426,6 +504,8 @@ void AppLayer::imGuiRender() {
       }
       ballsAdd.push(ball);
     }
+    ImGui::PopStyleColor(3);
+
     ImGui::End();
     ImGui::End();
 
@@ -435,6 +515,12 @@ void AppLayer::imGuiRender() {
 
     ImGui::Begin("Goal Controls", NULL, ImGuiWindowFlags_NoMove);
     goal.imGuiRender(physicsWorld, physicsCommon, terrain);
+    ImGui::End();
+  }
+
+  if (showTimeMetrics) {
+    ImGui::Begin("Show Time Metrics");
+    timeMetrics.imGuiRender(dpiScale);
     ImGui::End();
   }
 }

@@ -52,7 +52,9 @@ class AppLayer : public GLCore::Layer {
   opengl::Shader primitiveShader;
 
   bool showSidebar = true;
-  float dpiScale = -1;
+  bool showTimeMetrics = false;
+  bool initSimultaneous = true;
+  float dpiScale = 1.0;
   bool updateFont = false;
 
   std::vector<Ball> balls;

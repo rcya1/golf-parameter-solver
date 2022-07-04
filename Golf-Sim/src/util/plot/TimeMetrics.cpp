@@ -9,13 +9,15 @@ void TimeMetrics::update(GLCore::Timestep& ts) {
   time += ts.GetSeconds();
   timePerFrameScrollBuffer.addPoint(time, ts.GetMilliseconds());
   timePerFrameRollBuffer.addPoint(time, ts.GetMilliseconds());
-
-  sum += ts.GetMilliseconds();
-  num++;
 }
 
-void TimeMetrics::imGuiRender() {
-  float average[] = {sum / num};
+void TimeMetrics::imGuiRender(float dpiScale) {
+  float sum = 0;
+  for (int i = 0; i < timePerFrameRollBuffer.data.Size; i++) {
+    sum += timePerFrameRollBuffer.data[i].y;
+  }
+
+  float average[] = {sum / timePerFrameRollBuffer.data.Size};
 
   if (ImGui::SliderFloat("History", &historyLength, 1, 30, "%.1f s")) {
     timePerFrameRollBuffer.span = historyLength;
@@ -24,7 +26,8 @@ void TimeMetrics::imGuiRender() {
   static ImPlotAxisFlags flags = ImPlotAxisFlags_None;
   ImPlot::SetNextPlotLimitsX(time - historyLength, time, ImGuiCond_Always);
   ImPlot::SetNextPlotLimitsY(0, 100.0);
-  if (ImPlot::BeginPlot("##Scrolling", NULL, NULL, ImVec2(-1, 150), 0, flags,
+  if (ImPlot::BeginPlot("##Scrolling", NULL, NULL,
+                        ImVec2(-1, static_cast<int>(150 * dpiScale)), 0, flags,
                         flags)) {
     ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
     ImPlot::PlotShaded("Time per Frame (ms)",
@@ -37,7 +40,8 @@ void TimeMetrics::imGuiRender() {
   }
   ImPlot::SetNextPlotLimitsX(0, historyLength, ImGuiCond_Always);
   ImPlot::SetNextPlotLimitsY(0, 100.0);
-  if (ImPlot::BeginPlot("##Rolling", NULL, NULL, ImVec2(-1, 150), 0, flags,
+  if (ImPlot::BeginPlot("##Rolling", NULL, NULL,
+                        ImVec2(-1, static_cast<int>(150 * dpiScale)), 0, flags,
                         flags)) {
     ImPlot::PlotLine("Time per Frame (ms)", &timePerFrameRollBuffer.data[0].x,
                      &timePerFrameRollBuffer.data[0].y,

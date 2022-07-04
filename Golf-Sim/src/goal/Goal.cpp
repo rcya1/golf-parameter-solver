@@ -35,11 +35,18 @@ void Goal::imGuiRender(reactphysics3d::PhysicsWorld* physicsWorld,
   ImGui::DragFloat("Radius", &radius, 0.1f, 0.1f, 5.0f);
   ImGui::ColorEdit3("Color", glm::value_ptr(color));
 
+  ImGui::PushStyleColor(ImGuiCol_Button,
+                        ImVec4(0 / 255.0f, 162 / 255.0f, 62 / 255.0f, 1.0f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                        ImVec4(0 / 255.0f, 130 / 255.0f, 50 / 255.0f, 1.0f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                        ImVec4(0 / 255.0f, 104 / 255.0f, 40 / 255.0f, 1.0f));
   if (ImGui::Button("Regenerate Goal")) {
     generateModel(terrain);
     removePhysics(physicsWorld, physicsCommon);
     addPhysics(physicsWorld, physicsCommon);
   }
+  ImGui::PopStyleColor(3);
 }
 
 void Goal::addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,

@@ -7,13 +7,11 @@
 class TimeMetrics {
  public:
   void update(GLCore::Timestep& ts);
-  void imGuiRender();
+  void imGuiRender(float dpiScale);
 
  private:
   ScrollingBuffer timePerFrameScrollBuffer;
   RollingBuffer timePerFrameRollBuffer;
   float time = 0;
   float historyLength = 10.0f;
-  float sum = 0;
-  int num = 0;
 };

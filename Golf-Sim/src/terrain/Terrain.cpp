@@ -100,17 +100,35 @@ void Terrain::imGuiRender(Goal& goal,
   }
   ImGui::ColorEdit3("Color", glm::value_ptr(color));
 
-  ImGui::DragFloat("Map Width", &mapWidth, 1.0, 1, 100);
-  ImGui::DragFloat("Map Height", &mapHeight, 1.0, 1, 100);
-  ImGui::DragInt("Number of Columns", &numCols, 1.0, 1, 100);
-  ImGui::DragInt("Number of Rows", &numRows, 1.0, 1, 100);
-  ImGui::DragFloat("Noise Frequency", &noiseFreq, 0.5f, 0.01f, 20.0f);
+  ImGui::NewLine();
+
+  ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth() / 4.0);
+  ImGui::DragFloat("Width", &mapWidth, 1.0, 1, 100);
+  ImGui::SameLine();
+  ImGui::DragFloat("Height", &mapHeight, 1.0, 1, 100);
+
+  ImGui::DragInt("# Cols", &numCols, 1.0, 1, 100);
+  ImGui::SameLine();
+  ImGui::DragInt("# Rows", &numRows, 1.0, 1, 100);
+
+  ImGui::DragFloat("Noise Freq", &noiseFreq, 0.5f, 0.01f, 20.0f);
+  ImGui::SameLine();
   ImGui::DragFloat("Noise Amp", &noiseAmp, 0.5f, 0.0f, 20.0f);
+
+  ImGui::PopItemWidth();
+
+  ImGui::PushStyleColor(ImGuiCol_Button,
+                        ImVec4(0 / 255.0f, 162 / 255.0f, 62 / 255.0f, 1.0f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                        ImVec4(0 / 255.0f, 130 / 255.0f, 50 / 255.0f, 1.0f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                        ImVec4(0 / 255.0f, 104 / 255.0f, 40 / 255.0f, 1.0f));
   if (ImGui::Button("Regenerate Terrain")) {
     generateModel(goal);
     removePhysics(physicsWorld, physicsCommon);
     addPhysics(physicsWorld, physicsCommon);
   }
+  ImGui::PopStyleColor(3);
 }
 
 void Terrain::addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
