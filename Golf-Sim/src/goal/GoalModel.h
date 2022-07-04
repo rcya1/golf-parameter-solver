@@ -25,8 +25,8 @@ class GoalModel {
 
   std::unique_ptr<opengl::VertexArray>& getVertexArray() { return vertexArray; }
   glm::vec3 getPosition() { return pos; }
-  std::vector<float>& getVertices() { return vertices; };
-  std::vector<unsigned int>& getIndices() { return indices; };
+  std::vector<float>& getVertices() { return vertices; }
+  std::vector<unsigned int>& getIndices() { return indices; }
 
   int getNumVertices() { return numVertices; }
   float getBottomHeight() { return bottomHeight; }

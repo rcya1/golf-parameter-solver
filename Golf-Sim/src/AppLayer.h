@@ -3,6 +3,7 @@
 #include "ball/Ball.h"
 #include "ball/BallModel.h"
 #include "ball/BallRenderer.h"
+#include "ball/BallShapeRegistry.h"
 #include "terrain/Terrain.h"
 #include "terrain/TerrainRenderer.h"
 #include "goal/Goal.h"
@@ -33,9 +34,9 @@ class AppLayer : public GLCore::Layer {
   void render();
   virtual void imGuiRender() override;
 
-  void initializeBallsSimultaneous();
-  void initializeBallsStaggered();
-  void addBall(float power, float yawOffset, float pitch);
+  void initializeBalls(bool staggered);
+  void addBall(float power, float yawOffset, float pitch, bool staggered);
+  void addBall(glm::vec3 velocity);
 
  private:
   GLFWwindow* window;
@@ -61,6 +62,7 @@ class AppLayer : public GLCore::Layer {
   std::queue<Ball> ballsAdd;
   BallModel ballModel;
   BallRenderer ballRenderer;
+  BallShapeRegistry ballShapeRegistry;
 
   glm::vec3 addBallPosition;
   float addBallRadius;
@@ -79,6 +81,8 @@ class AppLayer : public GLCore::Layer {
   float maxPitch = PI / 3;
   float minYaw = -PI / 4;
   float maxYaw = PI / 4;
+  int staggeredBatchSize = 150;
+  std::vector<glm::vec3> staggeredBalls;
 
   Terrain terrain;
   TerrainRenderer terrainRenderer;

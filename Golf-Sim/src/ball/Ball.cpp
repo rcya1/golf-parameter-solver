@@ -1,14 +1,14 @@
 #include "Ball.h"
 
-#include "terrain/Terrain.h"
-#include "goal/Goal.h"
-#include "BallRenderer.h"
-
-#include "util/CollisionCategory.h"
-
 #include <imgui.h>
 
 #include <iostream>
+
+#include "BallRenderer.h"
+#include "BallShapeRegistry.h"
+#include "goal/Goal.h"
+#include "terrain/Terrain.h"
+#include "util/CollisionCategory.h"
 
 Ball::Ball()
     : Ball(0.0f, 0.0f, 0.0f, 1.0f, glm::vec3(0.808f, 0.471f, 0.408f)) {}
@@ -24,10 +24,11 @@ Ball::Ball(float x, float y, float z, float r, glm::vec3 color)
 void Ball::update(GLCore::Timestep ts, Terrain& terrain, Goal& goal,
                   reactphysics3d::PhysicsWorld* physicsWorld,
                   reactphysics3d::PhysicsCommon& physicsCommon,
+                  BallShapeRegistry& ballShapeRegistry,
                   float interpolationFactor) {
   if (!isOutOfBounds(terrain) && state == BallState::OUT_OF_BOUNDS) {
     if (!hasPhysics()) {
-      addPhysics(physicsWorld, physicsCommon);
+      addPhysics(physicsWorld, physicsCommon, ballShapeRegistry);
     }
     state = BallState::ACTIVE;
   }
@@ -38,12 +39,12 @@ void Ball::update(GLCore::Timestep ts, Terrain& terrain, Goal& goal,
 
   if (isOutOfBounds(terrain) && hasPhysics()) {
     state = BallState::OUT_OF_BOUNDS;
-    removePhysics(physicsWorld, physicsCommon);
+    removePhysics(physicsWorld, physicsCommon, ballShapeRegistry);
     return;
   }
 
   if (state == BallState::STATIONARY || state == BallState::ACTIVE) {
-    if (this->rigidBody->getLinearVelocity().lengthSquare() < 0.1) {
+    if (this->rigidBody->getLinearVelocity().lengthSquare() < 0.05) {
       state = BallState::STATIONARY;
     } else {
       state = BallState::ACTIVE;
@@ -92,7 +93,8 @@ void Ball::update(GLCore::Timestep ts, Terrain& terrain, Goal& goal,
     nearGoal = false;
   }
 
-  // calculate if we are in the goal or not based on our current height and proximity to the goal
+  // calculate if we are in the goal or not based on our current height and
+  // proximity to the goal
   if (state == BallState::STATIONARY &&
       abs(position.y - radius - goal.getBottomHeight()) < 0.2 && newNearGoal) {
     state = BallState::GOAL;
@@ -107,7 +109,8 @@ void Ball::render(BallRenderer& renderer) {
 }
 
 void Ball::imGuiRender(int index, reactphysics3d::PhysicsWorld* physicsWorld,
-                       reactphysics3d::PhysicsCommon& physicsCommon) {
+                       reactphysics3d::PhysicsCommon& physicsCommon,
+                       BallShapeRegistry& ballShapeRegistry) {
   ImGui::PushID(index);
   ImGui::AlignTextToFramePadding();
 
@@ -147,8 +150,8 @@ void Ball::imGuiRender(int index, reactphysics3d::PhysicsWorld* physicsWorld,
     }
     if (ImGui::DragFloat("Radius", &radius, 0.01f, 0.01f, 2.0f)) {
       if (hasPhysics()) {
-        removePhysics(physicsWorld, physicsCommon);
-        addPhysics(physicsWorld, physicsCommon);
+        removePhysics(physicsWorld, physicsCommon, ballShapeRegistry);
+        addPhysics(physicsWorld, physicsCommon, ballShapeRegistry);
       }
     }
     ImGui::ColorEdit3("Color", glm::value_ptr(color));
@@ -163,14 +166,14 @@ void Ball::imGuiRender(int index, reactphysics3d::PhysicsWorld* physicsWorld,
       }
 
       if (ImGui::Button("Add Physics")) {
-        addPhysics(physicsWorld, physicsCommon);
+        addPhysics(physicsWorld, physicsCommon, ballShapeRegistry);
       }
       if (addPhysicsDisabled) {
         ImGui::EndDisabled();
       }
     } else {
       if (ImGui::Button("Remove Physics")) {
-        removePhysics(physicsWorld, physicsCommon);
+        removePhysics(physicsWorld, physicsCommon, ballShapeRegistry);
       }
     }
 
@@ -184,7 +187,8 @@ void Ball::imGuiRender(int index, reactphysics3d::PhysicsWorld* physicsWorld,
 }
 
 void Ball::addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
-                      reactphysics3d::PhysicsCommon& physicsCommon) {
+                      reactphysics3d::PhysicsCommon& physicsCommon,
+                      BallShapeRegistry& ballShapeRegistry) {
   reactphysics3d::Vector3 position(position.x, position.y, position.z);
   reactphysics3d::Quaternion orientation =
       reactphysics3d::Quaternion::identity();
@@ -195,8 +199,9 @@ void Ball::addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
   this->rigidBody = physicsWorld->createRigidBody(transform);
   this->rigidBody->setType(reactphysics3d::BodyType::DYNAMIC);
   this->rigidBody->setMass(radius * radius * radius);
+  this->rigidBody->setLinearDamping(0.3);
 
-  this->sphereShape = physicsCommon.createSphereShape(radius);
+  this->sphereShape = ballShapeRegistry.getShape(radius, physicsCommon);
 
   this->collider = this->rigidBody->addCollider(
       sphereShape, reactphysics3d::Transform::identity());
@@ -208,11 +213,12 @@ void Ball::addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
 }
 
 void Ball::removePhysics(reactphysics3d::PhysicsWorld* physicsWorld,
-                         reactphysics3d::PhysicsCommon& physicsCommon) {
+                         reactphysics3d::PhysicsCommon& physicsCommon,
+                         BallShapeRegistry& ballShapeRegistry) {
   if (!hasPhysics()) return;
 
   physicsWorld->destroyRigidBody(this->rigidBody);
-  physicsCommon.destroySphereShape(this->sphereShape);
+  ballShapeRegistry.removeUsage(radius, physicsCommon);
 
   this->rigidBody = nullptr;
   this->collider = nullptr;

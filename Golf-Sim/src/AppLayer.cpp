@@ -17,7 +17,7 @@ AppLayer::AppLayer(GLFWwindow* window)
       renderFrameBuffer(10000, 10000),
       cameraController(glm::vec3(0, 5.0, 5.0), -90, 0, 45.0, 2.0 / 1.0, 5.0,
                        5.0, 0.1),
-      balls {},
+      balls{},
       goal(0.5, 0.5, 0.5),
       terrain(glm::vec3(0.0, 0.0, 0.0), 100, 100, 50.0f, 50.0f, 10.0f, 5.0f),
       lightDepthShader("assets/shaders/LightDepthVertexShader.vert",
@@ -36,9 +36,9 @@ AppLayer::AppLayer(GLFWwindow* window)
       addBallColor(0.808f, 0.471f, 0.408f) {
   lightScene = lights::LightScene{
       std::vector<lights::PointLight>{
-          lights::createBasicPointLight(glm::vec3( 25.0f, 25.0f,  25.0f)),
-          lights::createBasicPointLight(glm::vec3( 25.0f, 25.0f, -25.0f)),
-          lights::createBasicPointLight(glm::vec3(-25.0f, 25.0f,  25.0f)),
+          lights::createBasicPointLight(glm::vec3(25.0f, 25.0f, 25.0f)),
+          lights::createBasicPointLight(glm::vec3(25.0f, 25.0f, -25.0f)),
+          lights::createBasicPointLight(glm::vec3(-25.0f, 25.0f, 25.0f)),
           lights::createBasicPointLight(glm::vec3(-25.0f, 25.0f, -25.0f)),
           lights::createBasicPointLight(glm::vec3(0.0f, 20.0f, 0.0f)),
       },
@@ -57,7 +57,7 @@ AppLayer::AppLayer(GLFWwindow* window)
   terrain.addPhysics(physicsWorld, physicsCommon);
   goal.addPhysics(physicsWorld, physicsCommon);
 
-  initializeBallsSimultaneous();
+  initializeBalls(false);
 }
 
 AppLayer::~AppLayer() {}
@@ -91,7 +91,7 @@ void AppLayer::OnDetach() {
   lightDepthShader.free();
 
   for (Ball& ball : balls) {
-    ball.removePhysics(physicsWorld, physicsCommon);
+    ball.removePhysics(physicsWorld, physicsCommon, ballShapeRegistry);
   }
   terrain.removePhysics(physicsWorld, physicsCommon);
   goal.removePhysics(physicsWorld, physicsCommon);
@@ -124,6 +124,29 @@ void AppLayer::OnEvent(Event& event) {
 }
 
 void AppLayer::update(Timestep ts) {
+  // check if the staggered initialization is ready for next batch
+  if (staggeredBalls.size() > 0) {
+    bool anyActive = false;
+    for (Ball& ball : balls) {
+      if (ball.getState() == BallState::ACTIVE) {
+        anyActive = true;
+      }
+    }
+
+    if (!anyActive) {
+      for (Ball& ball : balls) {
+        ball.removePhysics(physicsWorld, physicsCommon, ballShapeRegistry);
+      }
+
+      int initSize = staggeredBalls.size();
+      for (int i = initSize - 1;
+           i >= std::max(0, initSize - staggeredBatchSize); i--) {
+        addBall(staggeredBalls[i]);
+        staggeredBalls.pop_back();
+      }
+    }
+  }
+
   if (!justStartedPhysics && physicsRunning) {
     physicsAccumulatedTime += ts;
   }
@@ -146,7 +169,7 @@ void AppLayer::update(Timestep ts) {
   }
   for (Ball& ball : balls) {
     ball.update(ts, terrain, goal, physicsWorld, physicsCommon,
-                interpolationFactor);
+                ballShapeRegistry, interpolationFactor);
   }
   terrain.update(ts, interpolationFactor);
 
@@ -172,15 +195,15 @@ void AppLayer::render() {
     physicsWorld->setIsDebugRenderingEnabled(true);
     reactphysics3d::DebugRenderer& debugRenderer =
         physicsWorld->getDebugRenderer();
+    // debugRenderer.setIsDebugItemDisplayed(
+    //     reactphysics3d::DebugRenderer::DebugItem::COLLIDER_AABB, true);
     debugRenderer.setIsDebugItemDisplayed(
-        reactphysics3d::DebugRenderer::DebugItem::COLLIDER_AABB, true);
-    // debugRenderer.setIsDebugItemDisplayed(
-    //     reactphysics3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
+        reactphysics3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
 
-    // debugRenderer.setIsDebugItemDisplayed(
-    //     reactphysics3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true);
-    // debugRenderer.setIsDebugItemDisplayed(
-    //     reactphysics3d::DebugRenderer::DebugItem::CONTACT_POINT, true);
+    debugRenderer.setIsDebugItemDisplayed(
+        reactphysics3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true);
+    debugRenderer.setIsDebugItemDisplayed(
+        reactphysics3d::DebugRenderer::DebugItem::CONTACT_POINT, true);
 
     debugRenderer.computeDebugRenderingPrimitives(*physicsWorld);
 
@@ -275,6 +298,8 @@ void AppLayer::render() {
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
       glDrawArrays(GL_TRIANGLES, 0, debugRenderer.getNbTriangles() * 3);
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+      debugRenderer.reset();
     }
   } else {
     physicsWorld->setIsDebugRenderingEnabled(false);
@@ -292,13 +317,14 @@ void AppLayer::render() {
     renderFrameBuffer.prepareForRender();
 
     if (renderNormals) {
-      // goal.render(goalRenderer);
-      // goalRenderer.render(cameraController.getCamera(), lightScene,
-      //                     &visualizeNormalsShader);
-      terrain.render(terrainRenderer, startPosition,
-                     startPositionHighlightRadius, startPositionHighlightColor);
-      terrainRenderer.render(cameraController.getCamera(), lightScene,
-                             &visualizeNormalsShader);
+      goal.render(goalRenderer);
+      goalRenderer.render(cameraController.getCamera(), lightScene,
+                          &visualizeNormalsShader);
+      // terrain.render(terrainRenderer, startPosition,
+      //                startPositionHighlightRadius,
+      //                startPositionHighlightColor);
+      // terrainRenderer.render(cameraController.getCamera(), lightScene,
+      //                        &visualizeNormalsShader);
     }
 
     for (Ball& ball : balls) {
@@ -390,7 +416,7 @@ void AppLayer::imGuiRender() {
   if (ImGui::BeginMainMenuBar()) {
     ImGui::Checkbox("Show Sidebar", &showSidebar);
     ImGui::Separator();
-    ImGui::Checkbox("Time Metrics", &showTimeMetrics);
+    ImGui::Checkbox("Show Time Metrics", &showTimeMetrics);
     ImGui::Separator();
     if (ImGui::BeginMenu("Debugging")) {
       ImGui::Checkbox("Shadows", &renderShadows);
@@ -428,12 +454,12 @@ void AppLayer::imGuiRender() {
                           ImVec4(0 / 255.0f, 130 / 255.0f, 50 / 255.0f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive,
                           ImVec4(0 / 255.0f, 104 / 255.0f, 40 / 255.0f, 1.0f));
-    if (ImGui::Button("Start / Stop")) {
-      physicsRunning = !physicsRunning;
+    if (ImGui::Checkbox("Physics Running", &physicsRunning)) {
       if (physicsRunning) {
         justStartedPhysics = true;
       }
     }
+
     ImGui::PopStyleColor(3);
 
     ImGui::PushStyleColor(ImGuiCol_Button,
@@ -443,12 +469,7 @@ void AppLayer::imGuiRender() {
     ImGui::PushStyleColor(ImGuiCol_ButtonActive,
                           ImVec4(142 / 255.0f, 3 / 255.0f, 0 / 255.0f, 1.0f));
     if (ImGui::Button("Reset Balls")) {
-      if (initSimultaneous) {
-        initializeBallsSimultaneous();
-      }
-      else {
-        initializeBallsStaggered();
-      }
+      initializeBalls(!initSimultaneous);
     }
     ImGui::PopStyleColor(3);
 
@@ -461,27 +482,51 @@ void AppLayer::imGuiRender() {
       initSimultaneous = false;
     }
 
-    ImGui::NewLine();
+    if (!initSimultaneous) {
+      ImGui::NewLine();
 
-    ImGui::DragFloat2("Start Position", glm::value_ptr(startPosition), 0.05f,
-                      0.0f, 0.25f);
-    ImGui::DragFloat("Highlight Radius", &startPositionHighlightRadius, 0.01f,
-                     0.0f, 1.0f);
-    ImGui::ColorEdit3("Highlight Color",
-                      glm::value_ptr(startPositionHighlightColor));
+      ImGui::DragInt("Staggered Batch Size", &staggeredBatchSize, 5.0f, 1, 500);
+    }
 
-    ImGui::NewLine();
+    if (staggeredBalls.empty()) {
+      ImGui::NewLine();
 
-    ImGui::DragInt("# Balls per Dim", &paramsNumDivisions, 0.25, 1, 15);
-    ImGui::DragFloatRange2("Power", &minPower, &maxPower, 0.25f, 0.0f, 30.0);
-    ImGui::DragFloatRange2("Yaw", &minYaw, &maxYaw, 0.25f, -PI / 2, PI / 2);
-    ImGui::DragFloatRange2("Pitch", &minPitch, &maxPitch, 0.25f, 0.0f, PI / 2);
+      ImGui::DragFloat2("Start Position", glm::value_ptr(startPosition), 0.05f,
+                        0.0f, 0.25f);
+      ImGui::DragFloat("Highlight Radius", &startPositionHighlightRadius, 0.01f,
+                       0.0f, 1.0f);
+      ImGui::ColorEdit3("Highlight Color",
+                        glm::value_ptr(startPositionHighlightColor));
+      ImGui::NewLine();
+
+      ImGui::DragInt("# Balls per Dim", &paramsNumDivisions, 0.25, 1, 15);
+      ImGui::DragFloatRange2("Power", &minPower, &maxPower, 0.25f, 0.0f, 30.0);
+      ImGui::DragFloatRange2("Yaw", &minYaw, &maxYaw, 0.25f, -PI / 2, PI / 2);
+      ImGui::DragFloatRange2("Pitch", &minPitch, &maxPitch, 0.25f, 0.0f,
+                             PI / 2);
+    } else {
+      ImGui::Text("%d Balls Left", staggeredBalls.size());
+      ImGui::PushStyleColor(ImGuiCol_Button,
+                            ImVec4(222 / 255.0f, 5 / 255.0f, 0 / 255.0f, 1.0f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                            ImVec4(178 / 255.0f, 4 / 255.0f, 0 / 255.0f, 1.0f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                            ImVec4(142 / 255.0f, 3 / 255.0f, 0 / 255.0f, 1.0f));
+      if (ImGui::Button("Cancel Staggered")) {
+        staggeredBalls.clear();
+        for (Ball& ball : balls) {
+          ball.removePhysics(physicsWorld, physicsCommon, ballShapeRegistry);
+        }
+        balls.clear();
+      }
+      ImGui::PopStyleColor(3);
+    }
 
     ImGui::End();
 
     ImGui::Begin("Balls", NULL, ImGuiWindowFlags_NoMove);
     for (int i = 0; i < balls.size(); i++) {
-      balls[i].imGuiRender(i, physicsWorld, physicsCommon);
+      balls[i].imGuiRender(i, physicsWorld, physicsCommon, ballShapeRegistry);
     }
     ImGui::Begin("Add Ball");
     ImGui::DragFloat3("Position", glm::value_ptr(addBallPosition), 1.0f, -10.0f,
@@ -500,7 +545,7 @@ void AppLayer::imGuiRender() {
       Ball ball = Ball(addBallPosition.x, addBallPosition.y, addBallPosition.z,
                        addBallRadius, addBallColor);
       if (addBallHasPhysics) {
-        ball.addPhysics(physicsWorld, physicsCommon);
+        ball.addPhysics(physicsWorld, physicsCommon, ballShapeRegistry);
       }
       ballsAdd.push(ball);
     }
@@ -519,15 +564,15 @@ void AppLayer::imGuiRender() {
   }
 
   if (showTimeMetrics) {
-    ImGui::Begin("Show Time Metrics");
+    ImGui::Begin("Time Metrics");
     timeMetrics.imGuiRender(dpiScale);
     ImGui::End();
   }
 }
 
-void AppLayer::initializeBallsSimultaneous() {
+void AppLayer::initializeBalls(bool staggered) {
   for (Ball& ball : balls) {
-    ball.removePhysics(physicsWorld, physicsCommon);
+    ball.removePhysics(physicsWorld, physicsCommon, ballShapeRegistry);
   }
   balls.clear();
 
@@ -541,15 +586,14 @@ void AppLayer::initializeBallsSimultaneous() {
       float yawOffset = minYaw + YAW_OFFSET_DIV * j;
       for (int k = 0; k < paramsNumDivisions; k++) {
         float pitch = minPitch + PITCH_DIV * k;
-        addBall(power, yawOffset, pitch);
+        addBall(power, yawOffset, pitch, staggered);
       }
     }
   }
 }
 
-void AppLayer::initializeBallsStaggered() {}
-
-void AppLayer::addBall(float power, float yawOffset, float pitch) {
+void AppLayer::addBall(float power, float yawOffset, float pitch,
+                       bool staggered) {
   glm::vec2 startPositionAbs = terrain.convertUV(startPosition);
   glm::vec2 dirVector =
       glm::normalize(goal.getAbsolutePosition(terrain) - startPositionAbs);
@@ -562,14 +606,24 @@ void AppLayer::addBall(float power, float yawOffset, float pitch) {
                   glm::vec3(rotatedPerp.x, 0, rotatedPerp.y));
   glm::vec3 finalDir = rotatedDir * power;
 
+  if (staggered) {
+    staggeredBalls.push_back(finalDir);
+  } else {
+    addBall(finalDir);
+  }
+}
+
+void AppLayer::addBall(glm::vec3 velocity) {
+  glm::vec2 startPositionAbs = terrain.convertUV(startPosition);
+
   Ball ball(startPositionAbs.x,
             terrain.getHeightFromRelative(
                 glm::vec2(startPosition.x * terrain.getWidth(),
                           startPosition.y * terrain.getHeight())) +
                 terrain.getPosition().y + addBallRadius * 2,
             startPositionAbs.y, addBallRadius, addBallColor);
-  ball.addPhysics(physicsWorld, physicsCommon);
-  ball.setVelocity(finalDir);
+  ball.addPhysics(physicsWorld, physicsCommon, ballShapeRegistry);
+  ball.setVelocity(velocity);
 
   balls.push_back(ball);
 }

@@ -223,7 +223,7 @@ void GoalModel::generateModel(Terrain& terrain, glm::vec2 goalCenter,
       // filter out points that are very close together
       auto it = innerPoints.begin();
       while (it + 1 != innerPoints.end()) {
-        if (glm::length((*it) - (*(it + 1))) < 0.0001) {
+        if (glm::length((*it) - (*(it + 1))) < 0.01) {
           it = innerPoints.erase(it);
         } else {
           it++;
@@ -361,7 +361,7 @@ void GoalModel::addVertex(glm::vec3 a, glm::vec3 norm) {
   int ix = -1;
   for (int i = 0; i < vertices.size(); i += 3) {
     glm::vec3 vertex = glm::vec3(vertices[i], vertices[i + 1], vertices[i + 2]);
-    if (glm::length(vertex - a) < 0.00001) {
+    if (glm::length(vertex - a) < 0.01) {
       ix = i / 3;
     }
   }
@@ -388,7 +388,11 @@ glm::vec3 GoalModel::getNormal(glm::vec3 a, glm::vec3 b, glm::vec3 c) {
 }
 
 void GoalModel::addTriangle(glm::vec3 a, glm::vec3 b, glm::vec3 c,
-                            glm::vec3 norm) {
+                            glm::vec3 norm) {  
+  if (glm::length(a - b) < 0.01 || glm::length(a - c) < 0.01 || glm::length(b - c) < 0.01) {
+    return;
+  }
+
   glm::vec3 triangleNorm = getNormal(a, b, c);
   if (norm.y < 0) {
     norm *= -1;
