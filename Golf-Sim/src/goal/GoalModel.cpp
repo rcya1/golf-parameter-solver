@@ -157,9 +157,11 @@ void GoalModel::generateModel(Terrain& terrain, glm::vec2 goalCenter,
       // add triangles for cells completely outside circle
       if (innerPoints.empty() && cornerPoints.size() == 4) {
         addTriangle(topLeft, topRight, botRight,
-                    getNormal(topLeft, topRight, botRight));
+                    getNormal(topLeft, topRight, botRight),
+                    GoalModelPart::TERRAIN_PART);
         addTriangle(topLeft, botRight, botLeft,
-                    getNormal(topLeft, botRight, botLeft));
+                    getNormal(topLeft, botRight, botLeft),
+                    GoalModelPart::TERRAIN_PART);
         continue;
       }
 
@@ -237,17 +239,20 @@ void GoalModel::generateModel(Terrain& terrain, glm::vec2 goalCenter,
         for (int i = 0; i < innerPoints.size() - 1; i++) {
           glm::vec3 a = innerPoints[i];
           glm::vec3 b = innerPoints[i + 1];
-          addTriangle(a, b, cornerPoint, norm);
+          addTriangle(a, b, cornerPoint, norm, GoalModelPart::TERRAIN_PART);
         }
       } else if (cornerPoints.size() == 3) {
         glm::vec3 firstCorner = cornerPoints[0];
         glm::vec3 lastCorner = cornerPoints[2];
         glm::vec3 middleCorner = cornerPoints[1];
 
-        addTriangle(*innerPoints.begin(), middleCorner, firstCorner, norm);
-        addTriangle(*innerPoints.rbegin(), lastCorner, middleCorner, norm);
+        addTriangle(*innerPoints.begin(), middleCorner, firstCorner, norm,
+                    GoalModelPart::TERRAIN_PART);
+        addTriangle(*innerPoints.rbegin(), lastCorner, middleCorner, norm,
+                    GoalModelPart::TERRAIN_PART);
         for (int i = 0; i < innerPoints.size() - 1; i++) {
-          addTriangle(innerPoints[i], innerPoints[i + 1], middleCorner, norm);
+          addTriangle(innerPoints[i], innerPoints[i + 1], middleCorner, norm,
+                      GoalModelPart::TERRAIN_PART);
         }
       } else if (cornerPoints.size() == 2) {
         glm::vec3 firstCorner = cornerPoints[0];
@@ -256,23 +261,27 @@ void GoalModel::generateModel(Terrain& terrain, glm::vec2 goalCenter,
         for (int i = 0; i < numConnectPerSide; i++) {
           glm::vec3 frontCurrPoint = innerPoints[i];
           glm::vec3 frontNextPoint = innerPoints[i + 1];
-          addTriangle(frontCurrPoint, frontNextPoint, firstCorner, norm);
+          addTriangle(frontCurrPoint, frontNextPoint, firstCorner, norm,
+                      GoalModelPart::TERRAIN_PART);
 
           glm::vec3 backCurrPoint = innerPoints[innerPoints.size() - 1 - i];
           glm::vec3 backNextPoint = innerPoints[innerPoints.size() - 1 - i - 1];
-          addTriangle(backCurrPoint, backNextPoint, lastCorner, norm);
+          addTriangle(backCurrPoint, backNextPoint, lastCorner, norm,
+                      GoalModelPart::TERRAIN_PART);
         }
 
         if (innerPoints.size() % 2 == 0) {
           glm::vec3 mid = (firstCorner + lastCorner) * 0.5f;
-          addTriangle(innerPoints[numConnectPerSide], firstCorner, mid, norm);
+          addTriangle(innerPoints[numConnectPerSide], firstCorner, mid, norm,
+                      GoalModelPart::TERRAIN_PART);
           addTriangle(innerPoints[numConnectPerSide],
-                      innerPoints[numConnectPerSide], mid, norm);
-          addTriangle(innerPoints[numConnectPerSide + 1], lastCorner, mid,
-                      norm);
+                      innerPoints[numConnectPerSide], mid, norm,
+                      GoalModelPart::TERRAIN_PART);
+          addTriangle(innerPoints[numConnectPerSide + 1], lastCorner, mid, norm,
+                      GoalModelPart::TERRAIN_PART);
         } else {
           addTriangle(innerPoints[numConnectPerSide], firstCorner, lastCorner,
-                      norm);
+                      norm, GoalModelPart::TERRAIN_PART);
         }
       } else {
         assert(false);
@@ -295,7 +304,7 @@ void GoalModel::generateModel(Terrain& terrain, glm::vec2 goalCenter,
         glm::vec3 b = glm::vec3(pointsCopy[1].pos.x, pointsCopy[1].height,
                                 pointsCopy[1].pos.y);
 
-        addTriangle(x, a, b, norm);
+        addTriangle(x, a, b, norm, GoalModelPart::TERRAIN_PART);
       }
     }
   }
@@ -316,9 +325,11 @@ void GoalModel::generateModel(Terrain& terrain, glm::vec2 goalCenter,
         next.pos.x, bottomHeight - terrain.getPosition().y, next.pos.y);
 
     addTriangle(currTop, currBottom, nextTop,
-                getNormal(currTop, currBottom, nextTop));
+                getNormal(currTop, currBottom, nextTop),
+                GoalModelPart::WALLS_PART);
     addTriangle(nextTop, currBottom, nextBottom,
-                getNormal(currTop, currBottom, nextTop));
+                getNormal(currTop, currBottom, nextTop),
+                GoalModelPart::WALLS_PART);
   }
 
   // add bottom of the goal
@@ -334,7 +345,8 @@ void GoalModel::generateModel(Terrain& terrain, glm::vec2 goalCenter,
         next.pos.x, bottomHeight - terrain.getPosition().y, next.pos.y);
 
     addTriangle(currBottom, centerBottom, nextBottom,
-                getNormal(currBottom, centerBottom, nextBottom));
+                getNormal(currBottom, centerBottom, nextBottom),
+                GoalModelPart::BOTTOM_PART);
   }
 
   vertexArray = std::make_unique<opengl::VertexArray>();
@@ -349,7 +361,7 @@ void GoalModel::generateModel(Terrain& terrain, glm::vec2 goalCenter,
   vertexArray->unbind();
 }
 
-void GoalModel::addVertex(glm::vec3 a, glm::vec3 norm) {
+void GoalModel::addVertex(glm::vec3 a, glm::vec3 norm, GoalModelPart part) {
   fullVertexData.push_back(a.x);
   fullVertexData.push_back(a.y);
   fullVertexData.push_back(a.z);
@@ -357,6 +369,9 @@ void GoalModel::addVertex(glm::vec3 a, glm::vec3 norm) {
   fullVertexData.push_back(norm.x);
   fullVertexData.push_back(norm.y);
   fullVertexData.push_back(norm.z);
+
+  std::vector<float>& vertices = getVerticesArray(part);
+  std::vector<unsigned int>& indices = getIndicesArray(part);
 
   int ix = -1;
   for (int i = 0; i < vertices.size(); i += 3) {
@@ -388,8 +403,9 @@ glm::vec3 GoalModel::getNormal(glm::vec3 a, glm::vec3 b, glm::vec3 c) {
 }
 
 void GoalModel::addTriangle(glm::vec3 a, glm::vec3 b, glm::vec3 c,
-                            glm::vec3 norm) {  
-  if (glm::length(a - b) < 0.01 || glm::length(a - c) < 0.01 || glm::length(b - c) < 0.01) {
+                            glm::vec3 norm, GoalModelPart part) {
+  if (glm::length(a - b) < 0.01 || glm::length(a - c) < 0.01 ||
+      glm::length(b - c) < 0.01) {
     return;
   }
 
@@ -401,24 +417,50 @@ void GoalModel::addTriangle(glm::vec3 a, glm::vec3 b, glm::vec3 c,
   // ensure the ordering is consistent
   if (triangleNorm.y < 0) {
     norm = getNormal(a, c, b);
-    addVertex(a, norm);
-    addVertex(c, norm);
-    addVertex(b, norm);
+    addVertex(a, norm, part);
+    addVertex(c, norm, part);
+    addVertex(b, norm, part);
   } else {
-    addVertex(a, norm);
-    addVertex(b, norm);
-    addVertex(c, norm);
+    addVertex(a, norm, part);
+    addVertex(b, norm, part);
+    addVertex(c, norm, part);
   }
 
   numVertices += 3;
+}
+
+std::vector<float>& GoalModel::getVerticesArray(GoalModelPart part) {
+  switch (part) {
+    case TERRAIN_PART:
+      return terrainVertices;
+    case WALLS_PART:
+      return wallVertices;
+    case BOTTOM_PART:
+      return bottomVertices;
+  }
+}
+
+std::vector<unsigned int>& GoalModel::getIndicesArray(GoalModelPart part) {
+  switch (part) {
+    case TERRAIN_PART:
+      return terrainIndices;
+    case WALLS_PART:
+      return wallIndices;
+    case BOTTOM_PART:
+      return bottomIndices;
+  }
 }
 
 void GoalModel::freeModel() {
   if (fullVertexData.empty()) return;
 
   fullVertexData.clear();
-  vertices.clear();
-  indices.clear();
+  terrainVertices.clear();
+  terrainIndices.clear();
+  wallVertices.clear();
+  wallIndices.clear();
+  bottomVertices.clear();
+  bottomIndices.clear();
   numVertices = 0;
 
   vertexArray->free();

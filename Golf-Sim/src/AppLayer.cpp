@@ -57,7 +57,7 @@ AppLayer::AppLayer(GLFWwindow* window)
   terrain.addPhysics(physicsWorld, physicsCommon);
   goal.addPhysics(physicsWorld, physicsCommon);
 
-  initializeBalls(false);
+  //initializeBalls(false);
 }
 
 AppLayer::~AppLayer() {}
@@ -195,15 +195,17 @@ void AppLayer::render() {
     physicsWorld->setIsDebugRenderingEnabled(true);
     reactphysics3d::DebugRenderer& debugRenderer =
         physicsWorld->getDebugRenderer();
-    // debugRenderer.setIsDebugItemDisplayed(
-    //     reactphysics3d::DebugRenderer::DebugItem::COLLIDER_AABB, true);
-    debugRenderer.setIsDebugItemDisplayed(
-        reactphysics3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
+     debugRenderer.setIsDebugItemDisplayed(
+         reactphysics3d::DebugRenderer::DebugItem::COLLIDER_AABB, true);
+    //debugRenderer.setIsDebugItemDisplayed(
+    //    reactphysics3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
 
     debugRenderer.setIsDebugItemDisplayed(
         reactphysics3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true);
-    debugRenderer.setIsDebugItemDisplayed(
-        reactphysics3d::DebugRenderer::DebugItem::CONTACT_POINT, true);
+    //debugRenderer.setIsDebugItemDisplayed(
+    //    reactphysics3d::DebugRenderer::DebugItem::CONTACT_POINT, true);
+    debugRenderer.setContactPointSphereRadius(0.1);
+    debugRenderer.setContactNormalLength(1.0);
 
     debugRenderer.computeDebugRenderingPrimitives(*physicsWorld);
 
@@ -295,9 +297,9 @@ void AppLayer::render() {
       vertexBuffer.setVertexAttribute(0, 3, GL_FLOAT, 0);
       vertexBuffer.setVertexAttribute(1, 3, GL_FLOAT, 3 * sizeof(float));
 
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
       glDrawArrays(GL_TRIANGLES, 0, debugRenderer.getNbTriangles() * 3);
-      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
       debugRenderer.reset();
     }

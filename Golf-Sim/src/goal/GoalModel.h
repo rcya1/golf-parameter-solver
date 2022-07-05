@@ -11,6 +11,12 @@
 
 class Terrain;
 
+enum GoalModelPart {
+  TERRAIN_PART,
+  WALLS_PART,
+  BOTTOM_PART
+};
+
 class GoalModel {
  public:
   const float PI = 3.14159265f;
@@ -25,8 +31,9 @@ class GoalModel {
 
   std::unique_ptr<opengl::VertexArray>& getVertexArray() { return vertexArray; }
   glm::vec3 getPosition() { return pos; }
-  std::vector<float>& getVertices() { return vertices; }
-  std::vector<unsigned int>& getIndices() { return indices; }
+
+  std::vector<float>& getVerticesArray(GoalModelPart part);
+  std::vector<unsigned int>& getIndicesArray(GoalModelPart part);
 
   int getNumVertices() { return numVertices; }
   float getBottomHeight() { return bottomHeight; }
@@ -34,8 +41,15 @@ class GoalModel {
  private:
   glm::vec3 pos;
   std::vector<float> fullVertexData;
-  std::vector<float> vertices;
-  std::vector<unsigned int> indices;
+
+  // for physics calculations
+  std::vector<float> terrainVertices;
+  std::vector<unsigned int> terrainIndices;
+  std::vector<float> wallVertices;
+  std::vector<unsigned int> wallIndices;
+  std::vector<float> bottomVertices;
+  std::vector<unsigned int> bottomIndices;
+
   int numVertices;
   float bottomHeight;
 
@@ -43,9 +57,10 @@ class GoalModel {
   std::unique_ptr<opengl::VertexBuffer> vertexBuffer;
   std::unique_ptr<opengl::IndexBuffer> indexBuffer;
 
-  void addVertex(glm::vec3 a, glm::vec3 norm);
+  void addVertex(glm::vec3 a, glm::vec3 norm, GoalModelPart part);
   glm::vec3 getNormal(glm::vec3 a, glm::vec3 b, glm::vec3 c);
-  void addTriangle(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 norm);
+  void addTriangle(glm::vec3 a, glm::vec3 b, glm::vec3 c, glm::vec3 norm,
+                   GoalModelPart part);
 };
 
 struct GoalModelPoint {

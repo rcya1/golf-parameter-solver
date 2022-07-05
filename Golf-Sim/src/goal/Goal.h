@@ -46,6 +46,8 @@ class Goal {
   reactphysics3d::Collider* collider;
   reactphysics3d::ConcaveMeshShape* shape;
   reactphysics3d::TriangleMesh* triangleMesh;
-  reactphysics3d::TriangleVertexArray* triangleVertexArray;
+  reactphysics3d::TriangleVertexArray* terrainVA;
+  reactphysics3d::TriangleVertexArray* wallsVA;
+  reactphysics3d::TriangleVertexArray* bottomVA;
   reactphysics3d::Transform prevTransform;
 };
