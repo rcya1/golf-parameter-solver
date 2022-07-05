@@ -9,6 +9,8 @@
 #include "util/opengl/VertexArray.h"
 #include "util/opengl/VertexBuffer.h"
 
+#include "ImGuiFileDialog.h"
+
 using namespace GLCore;
 using namespace GLCore::Utils;
 
@@ -569,6 +571,23 @@ void AppLayer::imGuiRender() {
     ImGui::Begin("Time Metrics");
     timeMetrics.imGuiRender(dpiScale);
     ImGui::End();
+  }
+
+  if (ImGui::Button("Open File Dialog"))
+  ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File",
+                                            ".cpp,.h,.hpp", ".");
+
+  // display
+  if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
+    // action if OK
+    if (ImGuiFileDialog::Instance()->IsOk()) {
+      std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+      std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+      // action
+    }
+
+    // close
+    ImGuiFileDialog::Instance()->Close();
   }
 }
 
