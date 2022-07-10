@@ -233,3 +233,10 @@ void Ball::setVelocity(glm::vec3 velocity) {
 bool Ball::isOutOfBounds(Terrain& terrain) {
   return position.y < terrain.getPosition().y + terrain.getMinHeight();
 }
+
+float Ball::getDistFromGoal(Goal& goal, Terrain& terrain) {
+  glm::vec2 goalPos = goal.getAbsolutePosition(terrain);
+  glm::vec2 ball2DPos = glm::vec2(position.x, position.z);
+
+  return glm::length(goalPos - ball2DPos);
+}

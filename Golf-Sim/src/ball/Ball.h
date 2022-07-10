@@ -37,9 +37,11 @@ class Ball {
   void setVelocity(glm::vec3 velocity);
   void setState(BallState state) { this->state = state; }
   BallState getState() { return state; }
+  float getRadius() { return radius; }
   glm::vec3 getPosition() { return position; }
   bool hasPhysics() { return rigidBody != nullptr; }
   bool isOutOfBounds(Terrain& terrain);
+  float getDistFromGoal(Goal& goal, Terrain& terrain);
 
  private:
   const float BOUNCINESS = 0.2;

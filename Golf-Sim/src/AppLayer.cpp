@@ -1,15 +1,17 @@
 #include "AppLayer.h"
 
+#include <filesystem>
+#include <fstream>
 #include <glm/gtx/rotate_vector.hpp>
 #include <vector>
 
 #include "GLCore/Core/KeyCodes.h"
+#include "IconsFontAwesome.h"
+#include "ImGuiFileDialog.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "util/DebugColors.h"
 #include "util/opengl/VertexArray.h"
 #include "util/opengl/VertexBuffer.h"
-
-#include "ImGuiFileDialog.h"
 
 using namespace GLCore;
 using namespace GLCore::Utils;
@@ -59,7 +61,7 @@ AppLayer::AppLayer(GLFWwindow* window)
   terrain.addPhysics(physicsWorld, physicsCommon);
   goal.addPhysics(physicsWorld, physicsCommon);
 
-  //initializeBalls(false);
+   initializeBalls(false);
 }
 
 AppLayer::~AppLayer() {}
@@ -78,6 +80,12 @@ void AppLayer::OnAttach() {
   ImGui::GetIO().Fonts->ClearFonts();
   ImGui::GetIO().Fonts->AddFontFromFileTTF("assets/fonts/Roboto-Medium.ttf",
                                            13);
+  ImFontConfig config;
+  config.MergeMode = true;
+  config.GlyphMinAdvanceX = 13.0f;
+  static const ImWchar icon_ranges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
+  ImGui::GetIO().Fonts->AddFontFromFileTTF(
+      "assets/fonts/" FONT_ICON_FILE_NAME_FAS, 13.0f, &config, icon_ranges);
 }
 
 void AppLayer::OnDetach() {
@@ -179,11 +187,35 @@ void AppLayer::update(Timestep ts) {
 
   timeMetrics.update(ts);
 
+  exportReady = false;
+  if (paramsNumDivisions * paramsNumDivisions * paramsNumDivisions ==
+      balls.size()) {
+    bool ready = true;
+    for (Ball& ball : balls) {
+      if (ball.getState() == BallState::ACTIVE) {
+        ready = false;
+        break;
+      }
+    }
+
+    if (ready) {
+      exportReady = true;
+    }
+  }
+
   // update font if the DPI scale has changed
   if (updateFont) {
     ImGui::GetIO().Fonts->Clear();
     ImGui::GetIO().Fonts->AddFontFromFileTTF("assets/fonts/Roboto-Medium.ttf",
                                              static_cast<int>(13 * dpiScale));
+    ImFontConfig config;
+    config.MergeMode = true;
+    config.GlyphMinAdvanceX = static_cast<int>(13 * dpiScale);
+    static const ImWchar icon_ranges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
+    ImGui::GetIO().Fonts->AddFontFromFileTTF(
+        "assets/fonts/" FONT_ICON_FILE_NAME_FAS, 13 * dpiScale, &config,
+        icon_ranges);
+
     ImGui::GetIO().Fonts->Build();
     ImGui_ImplOpenGL3_CreateFontsTexture();
     updateFont = false;
@@ -197,15 +229,15 @@ void AppLayer::render() {
     physicsWorld->setIsDebugRenderingEnabled(true);
     reactphysics3d::DebugRenderer& debugRenderer =
         physicsWorld->getDebugRenderer();
-     debugRenderer.setIsDebugItemDisplayed(
-         reactphysics3d::DebugRenderer::DebugItem::COLLIDER_AABB, true);
-    //debugRenderer.setIsDebugItemDisplayed(
-    //    reactphysics3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
+    debugRenderer.setIsDebugItemDisplayed(
+        reactphysics3d::DebugRenderer::DebugItem::COLLIDER_AABB, true);
+    // debugRenderer.setIsDebugItemDisplayed(
+    //     reactphysics3d::DebugRenderer::DebugItem::COLLISION_SHAPE, true);
 
     debugRenderer.setIsDebugItemDisplayed(
         reactphysics3d::DebugRenderer::DebugItem::CONTACT_NORMAL, true);
-    //debugRenderer.setIsDebugItemDisplayed(
-    //    reactphysics3d::DebugRenderer::DebugItem::CONTACT_POINT, true);
+    // debugRenderer.setIsDebugItemDisplayed(
+    //     reactphysics3d::DebugRenderer::DebugItem::CONTACT_POINT, true);
     debugRenderer.setContactPointSphereRadius(0.1);
     debugRenderer.setContactNormalLength(1.0);
 
@@ -299,9 +331,9 @@ void AppLayer::render() {
       vertexBuffer.setVertexAttribute(0, 3, GL_FLOAT, 0);
       vertexBuffer.setVertexAttribute(1, 3, GL_FLOAT, 3 * sizeof(float));
 
-      //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
       glDrawArrays(GL_TRIANGLES, 0, debugRenderer.getNbTriangles() * 3);
-      //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
       debugRenderer.reset();
     }
@@ -486,6 +518,39 @@ void AppLayer::imGuiRender() {
       initSimultaneous = false;
     }
 
+    ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeDir, "",
+                                              ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
+                                              ICON_FA_FOLDER);
+    ImGui::PushStyleColor(ImGuiCol_Button,
+                          ImVec4(0 / 255.0f, 162 / 255.0f, 62 / 255.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                          ImVec4(0 / 255.0f, 130 / 255.0f, 50 / 255.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                          ImVec4(0 / 255.0f, 104 / 255.0f, 40 / 255.0f, 1.0f));
+
+    if (exportReady) {
+      if (ImGui::Button(ICON_FA_FLOPPY_DISK " Export Results")) {
+        const char* filters = "Results File (*.golf){.golf}";
+        ImGuiFileDialog::Instance()->OpenDialog(
+            "Export", ICON_FA_FLOPPY_DISK "Select Output File", filters, ".",
+            "result", 1, IGFDUserDatas("SaveFile"),
+            ImGuiFileDialogFlags_ConfirmOverwrite);
+      }
+    }
+    ImGui::PopStyleColor(3);
+
+    if (ImGuiFileDialog::Instance()->Display("Export")) {
+      if (ImGuiFileDialog::Instance()->IsOk()) {
+        outputFilePath = ImGuiFileDialog::Instance()->GetFilePathName() + ".golf";
+        std::cout << outputFilePath << std::endl;
+        std::ofstream fout(outputFilePath);
+        writeOutputFile(fout);
+        fout.close();
+      }
+
+      ImGuiFileDialog::Instance()->Close();
+    }
+
     if (!initSimultaneous) {
       ImGui::NewLine();
 
@@ -572,23 +637,6 @@ void AppLayer::imGuiRender() {
     timeMetrics.imGuiRender(dpiScale);
     ImGui::End();
   }
-
-  if (ImGui::Button("Open File Dialog"))
-  ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File",
-                                            ".cpp,.h,.hpp", ".");
-
-  // display
-  if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
-    // action if OK
-    if (ImGuiFileDialog::Instance()->IsOk()) {
-      std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-      std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-      // action
-    }
-
-    // close
-    ImGuiFileDialog::Instance()->Close();
-  }
 }
 
 void AppLayer::initializeBalls(bool staggered) {
@@ -610,6 +658,11 @@ void AppLayer::initializeBalls(bool staggered) {
         addBall(power, yawOffset, pitch, staggered);
       }
     }
+  }
+
+  // reverse staggered balls because staggered batches are taken from the back
+  if (staggered) {
+    std::reverse(staggeredBalls.begin(), staggeredBalls.end());
   }
 }
 
@@ -647,4 +700,37 @@ void AppLayer::addBall(glm::vec3 velocity) {
   ball.setVelocity(velocity);
 
   balls.push_back(ball);
+}
+
+void AppLayer::writeOutputFile(std::ofstream& fout) {
+  if (paramsNumDivisions * paramsNumDivisions * paramsNumDivisions !=
+      balls.size()) {
+    fout << "ERROR: "
+         << paramsNumDivisions * paramsNumDivisions * paramsNumDivisions
+         << " balls expected, " << balls.size() << " balls found." << std::endl;
+    return;
+  }
+
+  fout << paramsNumDivisions << std::endl;
+  fout << minPower << std::endl;
+  fout << maxPower << std::endl;
+  fout << minYaw << std::endl;
+  fout << maxYaw << std::endl;
+  fout << minPower << std::endl;
+  fout << maxPower << std::endl;
+  fout << balls[0].getRadius() << std::endl;
+  fout << goal.getRadius() << std::endl;
+  fout << "---" << std::endl;
+  for (int i = 0; i < paramsNumDivisions; i++) {
+    for (int j = 0; j < paramsNumDivisions; j++) {
+      for (int k = 0; k < paramsNumDivisions; k++) {
+        fout << balls[i * paramsNumDivisions * paramsNumDivisions +
+                      j * paramsNumDivisions + k]
+                    .getDistFromGoal(goal, terrain);
+        if (k != paramsNumDivisions - 1) fout << " ";
+      }
+      fout << std::endl;
+    }
+    if (i != paramsNumDivisions - 1) fout << std::endl;
+  }
 }

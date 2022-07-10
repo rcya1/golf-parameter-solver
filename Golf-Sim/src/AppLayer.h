@@ -34,10 +34,6 @@ class AppLayer : public GLCore::Layer {
   void render();
   virtual void imGuiRender() override;
 
-  void initializeBalls(bool staggered);
-  void addBall(float power, float yawOffset, float pitch, bool staggered);
-  void addBall(glm::vec3 velocity);
-
  private:
   GLFWwindow* window;
   bool isCursorControllingCamera;
@@ -82,6 +78,8 @@ class AppLayer : public GLCore::Layer {
   float minYaw = -PI / 4;
   float maxYaw = PI / 4;
   int staggeredBatchSize = 150;
+  std::string outputFilePath = "";
+  bool exportReady = false;
   std::vector<glm::vec3> staggeredBalls;
 
   Terrain terrain;
@@ -101,4 +99,9 @@ class AppLayer : public GLCore::Layer {
   bool renderShadows = false;
   bool renderNormals = false;
   bool renderPhysicsDebugging = false;
+
+  void initializeBalls(bool staggered);
+  void addBall(float power, float yawOffset, float pitch, bool staggered);
+  void addBall(glm::vec3 velocity);
+  void writeOutputFile(std::ofstream &fout);
 };
