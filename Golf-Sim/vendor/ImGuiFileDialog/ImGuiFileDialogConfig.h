@@ -1,5 +1,7 @@
 #pragma once
 
+#include "IconsFontAwesome.h"
+
 // uncomment and modify defines under for customize ImGuiFileDialog
 
 //this options need c++17
@@ -58,11 +60,11 @@
 //#define IMGUI_BUTTON ImGui::Button
 
 // locales string
-//#define createDirButtonString "+"
-//#define resetButtonString "R"
-//#define drivesButtonString "Drives"
-//#define editPathButtonString "E"
-//#define searchString "Search"
+#define createDirButtonString ICON_FA_FOLDER_PLUS
+#define resetButtonString ICON_FA_ARROWS_ROTATE
+#define drivesButtonString ICON_FA_HARD_DRIVE
+#define editPathButtonString ICON_FA_PEN_TO_SQUARE
+#define searchString ICON_FA_MAGNIFYING_GLASS
 //#define dirEntryString "[DIR] "
 //#define linkEntryString "[LINK] "
 //#define fileEntryString "[FILE] "
@@ -73,8 +75,8 @@
 //#define buttonEditPathString "Edit path\nYou can also right click on path buttons"
 //#define buttonResetPathString "Reset to current directory"
 //#define buttonCreateDirString "Create Directory"
-//#define OverWriteDialogTitleString "The file Already Exist !"
-//#define OverWriteDialogMessageString "Would you like to OverWrite it ?"
+#define OverWriteDialogTitleString "The file already exists!"
+#define OverWriteDialogMessageString "Would you like to overwrite it?"
 //#define OverWriteDialogConfirmButtonString "Confirm"
 //#define OverWriteDialogCancelButtonString "Cancel"
 
@@ -101,10 +103,10 @@
 //#define tableHeaderFileTypeString " Type"
 //#define tableHeaderFileSizeString " Size"
 //#define tableHeaderFileDateTimeString " Date"
-//#define fileSizeBytes "o"
-//#define fileSizeKiloBytes "Ko"
-//#define fileSizeMegaBytes "Mo"
-//#define fileSizeGigaBytes "Go"
+#define fileSizeBytes "B"
+#define fileSizeKiloBytes "KB"
+#define fileSizeMegaBytes "MB"
+#define fileSizeGigaBytes "GB"
 
 // default table sort field (must be FIELD_FILENAME, FIELD_TYPE, FIELD_SIZE, FIELD_DATE or FIELD_THUMBNAILS)
 //#define defaultSortField FIELD_FILENAME

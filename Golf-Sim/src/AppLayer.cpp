@@ -7,6 +7,7 @@
 
 #include "GLCore/Core/KeyCodes.h"
 #include "IconsFontAwesome.h"
+#include "ImGuiConstants.h"
 #include "ImGuiFileDialog.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "util/DebugColors.h"
@@ -61,7 +62,7 @@ AppLayer::AppLayer(GLFWwindow* window)
   terrain.addPhysics(physicsWorld, physicsCommon);
   goal.addPhysics(physicsWorld, physicsCommon);
 
-   initializeBalls(false);
+  initializeBalls(false);
 }
 
 AppLayer::~AppLayer() {}
@@ -202,6 +203,7 @@ void AppLayer::update(Timestep ts) {
       exportReady = true;
     }
   }
+  exportReady = true;
 
   // update font if the DPI scale has changed
   if (updateFont) {
@@ -436,10 +438,22 @@ inline void SetupImGuiStyle() {
   colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
   colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
   colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeDir, "",
+                                            ImVec4(0.2f, 1.0f, 1.0f, 1.0f),
+                                            ICON_FA_FOLDER);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtention, ".golf",
+                                            ImVec4(0.2f, 1.0f, 0.2f, 1.0f),
+                                            ICON_FA_GOLF_BALL_TEE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeFile, "",
+                                            ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
+                                            ICON_FA_FILE);
 }
 
 void AppLayer::imGuiRender() {
   SetupImGuiStyle();
+
+  ImVec2 windowSize = ImGui::GetWindowSize();
 
   if (dpiScale != ImGui::GetWindowDpiScale() &&
       ImGui::GetWindowDpiScale() != 0.0) {
@@ -473,41 +487,28 @@ void AppLayer::imGuiRender() {
 
   ImGui::Begin("Viewport", NULL,
                ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
-  ImVec2 windowSize = ImGui::GetContentRegionAvail();
+  ImVec2 viewportSize = ImGui::GetContentRegionAvail();
   ImGui::BeginChild("Render");
-  renderFrameBuffer.updateSize(windowSize.x, windowSize.y);
-  cameraController.updateSize(windowSize.x, windowSize.y);
-  ImGui::Image((ImTextureID)renderFrameBuffer.textureId, windowSize,
+  renderFrameBuffer.updateSize(viewportSize.x, viewportSize.y);
+  cameraController.updateSize(viewportSize.x, viewportSize.y);
+  ImGui::Image((ImTextureID)renderFrameBuffer.textureId, viewportSize,
                ImVec2(0, 1), ImVec2(1, 0));
   ImGui::EndChild();
   ImGui::End();
 
   if (showSidebar) {
     ImGui::Begin("Simulation", NULL, ImGuiWindowFlags_NoMove);
-    ImGui::PushStyleColor(ImGuiCol_Button,
-                          ImVec4(0 / 255.0f, 162 / 255.0f, 62 / 255.0f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          ImVec4(0 / 255.0f, 130 / 255.0f, 50 / 255.0f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                          ImVec4(0 / 255.0f, 104 / 255.0f, 40 / 255.0f, 1.0f));
     if (ImGui::Checkbox("Physics Running", &physicsRunning)) {
       if (physicsRunning) {
         justStartedPhysics = true;
       }
     }
 
-    ImGui::PopStyleColor(3);
-
-    ImGui::PushStyleColor(ImGuiCol_Button,
-                          ImVec4(222 / 255.0f, 5 / 255.0f, 0 / 255.0f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          ImVec4(178 / 255.0f, 4 / 255.0f, 0 / 255.0f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                          ImVec4(142 / 255.0f, 3 / 255.0f, 0 / 255.0f, 1.0f));
+    setupRedButton();
     if (ImGui::Button("Reset Balls")) {
       initializeBalls(!initSimultaneous);
     }
-    ImGui::PopStyleColor(3);
+    clearButtonStyle();
 
     ImGui::SameLine();
     if (ImGui::RadioButton("Simultaneous", initSimultaneous)) {
@@ -517,31 +518,25 @@ void AppLayer::imGuiRender() {
     if (ImGui::RadioButton("Staggered", !initSimultaneous)) {
       initSimultaneous = false;
     }
-
-    ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeDir, "",
-                                              ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
-                                              ICON_FA_FOLDER);
-    ImGui::PushStyleColor(ImGuiCol_Button,
-                          ImVec4(0 / 255.0f, 162 / 255.0f, 62 / 255.0f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          ImVec4(0 / 255.0f, 130 / 255.0f, 50 / 255.0f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                          ImVec4(0 / 255.0f, 104 / 255.0f, 40 / 255.0f, 1.0f));
-
+    setupGreenButton();
     if (exportReady) {
       if (ImGui::Button(ICON_FA_FLOPPY_DISK " Export Results")) {
         const char* filters = "Results File (*.golf){.golf}";
         ImGuiFileDialog::Instance()->OpenDialog(
-            "Export", ICON_FA_FLOPPY_DISK "Select Output File", filters, ".",
+            "Export", ICON_FA_FLOPPY_DISK " Select Output File", filters, ".",
             "result", 1, IGFDUserDatas("SaveFile"),
             ImGuiFileDialogFlags_ConfirmOverwrite);
       }
     }
-    ImGui::PopStyleColor(3);
+    clearButtonStyle();
 
-    if (ImGuiFileDialog::Instance()->Display("Export")) {
+    ImVec2 maxSize = windowSize;
+    ImVec2 minSize = ImVec2(windowSize.x / 2.0, windowSize.y / 2.0);
+    if (ImGuiFileDialog::Instance()->Display(
+            "Export", ImGuiWindowFlags_NoDocking, minSize, maxSize)) {
       if (ImGuiFileDialog::Instance()->IsOk()) {
-        outputFilePath = ImGuiFileDialog::Instance()->GetFilePathName() + ".golf";
+        outputFilePath =
+            ImGuiFileDialog::Instance()->GetFilePathName() + ".golf";
         std::cout << outputFilePath << std::endl;
         std::ofstream fout(outputFilePath);
         writeOutputFile(fout);
@@ -575,12 +570,7 @@ void AppLayer::imGuiRender() {
                              PI / 2);
     } else {
       ImGui::Text("%d Balls Left", staggeredBalls.size());
-      ImGui::PushStyleColor(ImGuiCol_Button,
-                            ImVec4(222 / 255.0f, 5 / 255.0f, 0 / 255.0f, 1.0f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                            ImVec4(178 / 255.0f, 4 / 255.0f, 0 / 255.0f, 1.0f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                            ImVec4(142 / 255.0f, 3 / 255.0f, 0 / 255.0f, 1.0f));
+      setupRedButton();
       if (ImGui::Button("Cancel Staggered")) {
         staggeredBalls.clear();
         for (Ball& ball : balls) {
@@ -588,7 +578,7 @@ void AppLayer::imGuiRender() {
         }
         balls.clear();
       }
-      ImGui::PopStyleColor(3);
+      clearButtonStyle();
     }
 
     ImGui::End();
@@ -604,12 +594,7 @@ void AppLayer::imGuiRender() {
     ImGui::ColorEdit3("Color", glm::value_ptr(addBallColor));
     ImGui::Checkbox("Has Physics", &addBallHasPhysics);
 
-    ImGui::PushStyleColor(ImGuiCol_Button,
-                          ImVec4(0 / 255.0f, 162 / 255.0f, 62 / 255.0f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          ImVec4(0 / 255.0f, 130 / 255.0f, 50 / 255.0f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                          ImVec4(0 / 255.0f, 104 / 255.0f, 40 / 255.0f, 1.0f));
+    setupGreenButton();
     if (ImGui::Button("Add")) {
       Ball ball = Ball(addBallPosition.x, addBallPosition.y, addBallPosition.z,
                        addBallRadius, addBallColor);
@@ -618,7 +603,7 @@ void AppLayer::imGuiRender() {
       }
       ballsAdd.push(ball);
     }
-    ImGui::PopStyleColor(3);
+    clearButtonStyle();
 
     ImGui::End();
     ImGui::End();

@@ -5,6 +5,7 @@
 #include "terrain/TerrainRenderer.h"
 
 #include "util/CollisionCategory.h"
+#include "ImGuiConstants.h"
 
 #include "PerlinNoise.h"
 
@@ -117,18 +118,13 @@ void Terrain::imGuiRender(Goal& goal,
 
   ImGui::PopItemWidth();
 
-  ImGui::PushStyleColor(ImGuiCol_Button,
-                        ImVec4(0 / 255.0f, 162 / 255.0f, 62 / 255.0f, 1.0f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                        ImVec4(0 / 255.0f, 130 / 255.0f, 50 / 255.0f, 1.0f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                        ImVec4(0 / 255.0f, 104 / 255.0f, 40 / 255.0f, 1.0f));
+  setupGreenButton();
   if (ImGui::Button("Regenerate Terrain")) {
     generateModel(goal);
     removePhysics(physicsWorld, physicsCommon);
     addPhysics(physicsWorld, physicsCommon);
   }
-  ImGui::PopStyleColor(3);
+  clearButtonStyle();
 }
 
 void Terrain::addPhysics(reactphysics3d::PhysicsWorld* physicsWorld,
