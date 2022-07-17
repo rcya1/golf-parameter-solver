@@ -23,7 +23,8 @@ def get_file_contents():
 def plot_successes_3d(file):
     fig = plt.figure()
     plt.axis('off')
-    plt.title("3D Plot of Successes")
+    plt.title('3D Plot of Successes')
+    fig.canvas.manager.set_window_title('3D Plot of Successes')
     ax = fig.add_subplot(projection='3d')
 
     ax.set_xlabel('Yaw')
@@ -52,38 +53,52 @@ def plot_successes_3d(file):
     plt.colorbar(scatter)
 
 
-def on_update_pitch(fig):
-    def callback(val):
-        print(val)
-
-    return callback
-
-
 # for a given pitch controlled by a slider, plots the distance
 # using color for power and yaw on a 3D graph with only a 2D
 # cross section showen
 def plot_cross_section_color(file):
     fig = plt.figure()
-    plt.title("Cross Section of Parameter Graph")
+    plt.title('Cross Section of Parameter Graph')
+    fig.canvas.manager.set_window_title('Cross Section of Parameter Graph')
     plt.subplots_adjust(bottom=0.25)
-    ax_pitch = plt.axes([0.25, 0.1, 0.65, 0.03])
 
+    ax = fig.axes[0]
+    ax.set_xlabel('Yaw Offset')
+    ax.set_ylabel('Power')
+
+    ax_slider = plt.axes([0.25, 0.1, 0.65, 0.03])
+    init_pitch = file.get_pitch_inc() * (file.dim // 2) + file.min_pitch
     global pitch_slider  # keep a global reference
     pitch_slider = Slider(
-        ax=ax_pitch,
+        ax=ax_slider,
         label='Pitch',
-        valmin=0,
-        valmax=0.5,
-        valinit=0
+        valmin=file.min_pitch,
+        valmax=file.max_pitch,
+        valinit=init_pitch,
+        valstep=file.get_pitch_inc()
     )
-    pitch_slider.on_changed(on_update_pitch(fig))
+
+    def index_from_pitch(val):
+        return round((val - file.min_pitch) / file.get_pitch_inc())
+
+    def get_data(pitch_index):
+        return file.values[:, :, pitch_index]
+
+    def on_update_pitch(pitch):
+        data = get_data(index_from_pitch(pitch))
+        ax.imshow(data)
+        fig.canvas.draw_idle()
+
+    pitch_slider.on_changed(on_update_pitch)
+    ax.imshow(get_data(file.dim // 2))
+    print(get_data(file.dim // 2))
 
 
 if __name__ == '__main__':
     file_contents = get_file_contents()
     file = File(file_contents)
 
-    # plot_successes_3d(file)
-    # plot_cross_section_color(file)
+    plot_successes_3d(file)
+    plot_cross_section_color(file)
 
     plt.show()

@@ -25,10 +25,10 @@ class File():
         self.values = np.array(values).reshape((self.dim, self.dim, self.dim))
 
     def get_power_inc(self):
-        return (self.max_power - self.min_power) / self.dim
+        return (self.max_power - self.min_power) / (self.dim - 1)
 
     def get_yaw_inc(self):
-        return (self.max_yaw - self.min_yaw) / self.dim
+        return (self.max_yaw - self.min_yaw) / (self.dim - 1)
 
     def get_pitch_inc(self):
-        return (self.max_pitch - self.min_pitch) / self.dim
+        return (self.max_pitch - self.min_pitch) / (self.dim - 1)

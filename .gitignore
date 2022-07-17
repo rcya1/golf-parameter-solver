@@ -12,3 +12,6 @@
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
+
+# Python
+# *__pycache__/*
