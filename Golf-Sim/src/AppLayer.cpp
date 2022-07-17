@@ -73,10 +73,9 @@ void AppLayer::OnAttach() {
   glEnable(GL_DEPTH_TEST);
   // doesn't really increase performance that much, but is useful for ensuring
   // consistent vertex ordering (for use with collision library)
-  // glEnable(GL_CULL_FACE);
-  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  glEnable(GL_CULL_FACE);
+
   glEnable(GL_DEPTH_TEST);
-  isCursorControllingCamera = true;
 
   ImGui::GetIO().Fonts->ClearFonts();
   ImGui::GetIO().Fonts->AddFontFromFileTTF("assets/fonts/Roboto-Medium.ttf",
@@ -563,11 +562,11 @@ void AppLayer::imGuiRender() {
                         glm::value_ptr(startPositionHighlightColor));
       ImGui::NewLine();
 
-      ImGui::DragInt("# Balls per Dim", &paramsNumDivisions, 0.25, 1, 15);
+      ImGui::DragInt("# Balls per Dim", &paramsNumDivisions, 0.25, 1, 100);
       ImGui::DragFloatRange2("Power", &minPower, &maxPower, 0.25f, 0.0f, 30.0);
-      ImGui::DragFloatRange2("Yaw", &minYaw, &maxYaw, 0.25f, -PI / 2, PI / 2);
-      ImGui::DragFloatRange2("Pitch", &minPitch, &maxPitch, 0.25f, 0.0f,
-                             PI / 2);
+      ImGui::DragFloatRange2("Yaw Offset (°)", &minYaw, &maxYaw, 1.5f, -90.0f, 90.0f);
+      ImGui::DragFloatRange2("Pitch (°)", &minPitch, &maxPitch, 1.0f, 0.0f,
+                             90.0f);
     } else {
       ImGui::Text("%d Balls Left", staggeredBalls.size());
       setupRedButton();
@@ -640,7 +639,7 @@ void AppLayer::initializeBalls(bool staggered) {
       float yawOffset = minYaw + YAW_OFFSET_DIV * j;
       for (int k = 0; k < paramsNumDivisions; k++) {
         float pitch = minPitch + PITCH_DIV * k;
-        addBall(power, yawOffset, pitch, staggered);
+        addBall(power, yawOffset * 180 / PI, pitch * 180 / PI, staggered);
       }
     }
   }
@@ -701,11 +700,11 @@ void AppLayer::writeOutputFile(std::ofstream& fout) {
   fout << maxPower << std::endl;
   fout << minYaw << std::endl;
   fout << maxYaw << std::endl;
-  fout << minPower << std::endl;
-  fout << maxPower << std::endl;
+  fout << minPitch << std::endl;
+  fout << maxPitch << std::endl;
   fout << balls[0].getRadius() << std::endl;
   fout << goal.getRadius() << std::endl;
-  fout << "---" << std::endl;
+  fout << std::endl;
   for (int i = 0; i < paramsNumDivisions; i++) {
     for (int j = 0; j < paramsNumDivisions; j++) {
       for (int k = 0; k < paramsNumDivisions; k++) {

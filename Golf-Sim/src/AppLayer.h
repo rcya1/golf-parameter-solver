@@ -36,7 +36,7 @@ class AppLayer : public GLCore::Layer {
 
  private:
   GLFWwindow* window;
-  bool isCursorControllingCamera;
+  bool isCursorControllingCamera = false;
   opengl::RenderFrameBuffer renderFrameBuffer;
 
   opengl::PerspectiveCameraController cameraController;
@@ -74,9 +74,9 @@ class AppLayer : public GLCore::Layer {
   float minPower = 3.0;
   float maxPower = 15.0;
   float minPitch = 0.0;
-  float maxPitch = PI / 3;
-  float minYaw = -PI / 4;
-  float maxYaw = PI / 4;
+  float maxPitch = 60.0f;
+  float minYaw = -45.0f;
+  float maxYaw = 45.0f;
   int staggeredBatchSize = 150;
   std::string outputFilePath = "";
   bool exportReady = false;
