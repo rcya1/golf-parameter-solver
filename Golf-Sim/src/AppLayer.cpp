@@ -449,6 +449,61 @@ inline void SetupImGuiStyle() {
                                             ICON_FA_FILE);
 }
 
+void pushActiveTabColors() {
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.16f, 0.63f, 1.00f, 1.00f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                        ImVec4(0.38f, 0.66f, 1.00f, 1.00f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                        ImVec4(0.16f, 0.63f, 1.00f, 1.00f));
+}
+
+void renderHelpMenu() {
+  ImGui::SameLine();
+  static int currHelpTab = 0;
+  ImGui::SameLine();
+
+  bool pushedColors = false;
+
+  std::map<int, std::string> tabMapping = {
+    std::make_pair(0, "Overview"),
+    std::make_pair(1, "Controls"),
+    std::make_pair(2, "Running Simulation"),
+    std::make_pair(3, "Exporting Results")
+  };
+
+  for (auto& x : tabMapping) {
+    int tab = x.first;
+    std::string tabName = x.second;
+
+    ImGui::SameLine();
+    bool activeTab = (currHelpTab == tab);
+    if (activeTab) {
+      pushActiveTabColors();
+    }
+    if (ImGui::Button(tabName.c_str())) {
+      currHelpTab = tab;
+    }
+    if (activeTab) {
+      ImGui::PopStyleColor(3);
+    }
+  }
+  
+  switch(currHelpTab) {
+    case 0:
+      ImGui::Text("Overview");
+      break;
+    case 1:
+      ImGui::Text("Controls");
+      break;
+    case 2:
+      ImGui::Text("Running Simulation");
+      break;
+    case 3:
+      ImGui::Text("Exporting Results");
+      break;
+  }
+}
+
 void AppLayer::imGuiRender() {
   SetupImGuiStyle();
 
@@ -462,7 +517,20 @@ void AppLayer::imGuiRender() {
 
   bool showRenderMenu = false;
 
+  if (showHelpPopup) {
+    if (!ImGui::Begin("Help", &showHelpPopup)) {
+      // blank
+    }
+    else {
+      renderHelpMenu();
+    }
+    ImGui::End();
+  }
+
   if (ImGui::BeginMainMenuBar()) {
+    if (ImGui::Button("Show Help")) {
+      showHelpPopup = true;
+    }
     ImGui::Checkbox("Show Sidebar", &showSidebar);
     ImGui::Separator();
     ImGui::Checkbox("Show Time Metrics", &showTimeMetrics);
@@ -564,8 +632,8 @@ void AppLayer::imGuiRender() {
 
       ImGui::DragInt("# Balls per Dim", &paramsNumDivisions, 0.25, 1, 100);
       ImGui::DragFloatRange2("Power", &minPower, &maxPower, 0.25f, 0.0f, 30.0);
-      ImGui::DragFloatRange2("Yaw Offset (°)", &minYaw, &maxYaw, 1.5f, -90.0f, 90.0f);
-      ImGui::DragFloatRange2("Pitch (°)", &minPitch, &maxPitch, 1.0f, 0.0f,
+      ImGui::DragFloatRange2("Yaw Offset (deg)", &minYaw, &maxYaw, 1.5f, -90.0f, 90.0f);
+      ImGui::DragFloatRange2("Pitch (deg)", &minPitch, &maxPitch, 1.0f, 0.0f,
                              90.0f);
     } else {
       ImGui::Text("%d Balls Left", staggeredBalls.size());
@@ -639,7 +707,7 @@ void AppLayer::initializeBalls(bool staggered) {
       float yawOffset = minYaw + YAW_OFFSET_DIV * j;
       for (int k = 0; k < paramsNumDivisions; k++) {
         float pitch = minPitch + PITCH_DIV * k;
-        addBall(power, yawOffset * 180 / PI, pitch * 180 / PI, staggered);
+        addBall(power, yawOffset * PI / 180, pitch * PI / 180, staggered);
       }
     }
   }

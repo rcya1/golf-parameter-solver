@@ -14,4 +14,4 @@
 *.vcxproj.user
 
 # Python
-# *__pycache__/*
+Params-Viz/__pycache__/*

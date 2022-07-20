@@ -48,6 +48,7 @@ class AppLayer : public GLCore::Layer {
   opengl::Shader visualizeNormalsShader;
   opengl::Shader primitiveShader;
 
+  bool showHelpPopup = true;
   bool showSidebar = true;
   bool showTimeMetrics = false;
   bool initSimultaneous = true;

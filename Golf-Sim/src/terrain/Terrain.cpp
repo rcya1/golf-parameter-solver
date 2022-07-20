@@ -36,6 +36,9 @@ void Terrain::generateModel(Goal& goal) {
   }
 
   noise::initNoise();
+  srand(noiseSeed);
+  float offsetX = rand() / 2;
+  float offsetY = rand() / 2;
 
   heightMap = std::vector<float>((numRows + 1) * (numCols + 1));
 
@@ -47,9 +50,7 @@ void Terrain::generateModel(Goal& goal) {
       float x = j * getHSpacing() - this->mapWidth / 2;
       float z = i * getVSpacing() - this->mapHeight / 2;
 
-      // float height = noiseAmp;
-      // float height = (x * x + z * z) / 10.0;
-      float height = noise::noise(x / noiseFreq, -5, z / noiseFreq) * noiseAmp;
+      float height = noise::noise(x / noiseFreq + offsetX, -5, z / noiseFreq + offsetY) * noiseAmp;
 
       heightMap[i * (static_cast<long long>(numCols) + 1) + j] = height;
     }
@@ -116,6 +117,8 @@ void Terrain::imGuiRender(Goal& goal,
   ImGui::SameLine();
   ImGui::DragFloat("Noise Amp", &noiseAmp, 0.5f, 0.0f, 20.0f);
 
+  ImGui::InputInt("Noise Random Seed", &noiseSeed, 1.0f);
+
   ImGui::PopItemWidth();
 
   setupGreenButton();
@@ -123,6 +126,10 @@ void Terrain::imGuiRender(Goal& goal,
     generateModel(goal);
     removePhysics(physicsWorld, physicsCommon);
     addPhysics(physicsWorld, physicsCommon);
+
+    goal.generateModel(*this);
+    goal.removePhysics(physicsWorld, physicsCommon);
+    goal.addPhysics(physicsWorld, physicsCommon);
   }
   clearButtonStyle();
 }

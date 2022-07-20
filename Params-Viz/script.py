@@ -48,9 +48,9 @@ def plot_successes_3d(file):
             data[2].append(power)
             data[3].append(dist)
 
-    cmap = plt.cm.get_cmap('viridis')
+    cmap = plt.cm.get_cmap('winter')
     scatter = ax.scatter(data[0], data[1], data[2], c=data[3], cmap=cmap)
-    plt.colorbar(scatter)
+    plt.colorbar(scatter, label='Dist from Goal')
 
 
 # for a given pitch controlled by a slider, plots the distance
@@ -78,20 +78,33 @@ def plot_cross_section_color(file):
         valstep=file.get_pitch_inc()
     )
 
+    colorbar = None
+
     def index_from_pitch(val):
         return round((val - file.min_pitch) / file.get_pitch_inc())
 
     def get_data(pitch_index):
         return file.values[:, :, pitch_index]
 
+    def plot(data):
+        nonlocal colorbar
+
+        if colorbar:
+            colorbar.remove()
+
+        im = ax.imshow(data, interpolation='none',
+                       extent=[file.min_yaw, file.max_yaw,
+                               file.min_power, file.max_power])
+        ax.set_aspect(file.get_yaw_inc() / file.get_power_inc())
+        colorbar = plt.colorbar(im, ax=ax, label='Dist from Goal')
+
     def on_update_pitch(pitch):
         data = get_data(index_from_pitch(pitch))
-        ax.imshow(data)
+        plot(data)
         fig.canvas.draw_idle()
 
+    plot(get_data(file.dim // 2))
     pitch_slider.on_changed(on_update_pitch)
-    ax.imshow(get_data(file.dim // 2))
-    print(get_data(file.dim // 2))
 
 
 if __name__ == '__main__':

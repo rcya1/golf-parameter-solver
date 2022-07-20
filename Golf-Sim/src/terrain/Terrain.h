@@ -64,6 +64,7 @@ class Terrain {
   glm::vec3 position;
   glm::vec3 color;
 
+  int noiseSeed = 0;
   std::vector<float> heightMap;
   TerrainModel terrainModel;
   float minHeight;
