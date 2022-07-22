@@ -6,7 +6,6 @@ GPS (Golf Parameter Solver) is a simulation tool that launches up to tens of tho
 
 <p float="left">
   <img src="./docs/1.png" width="600" />
-  <img src="./docs/2.png" width="600" /> 
   <img src="./docs/3.png" width="600" />
 </p>
 
