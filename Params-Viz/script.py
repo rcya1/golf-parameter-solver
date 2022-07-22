@@ -4,6 +4,7 @@ from file import File
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 import numpy as np
+import sys
 
 pitch_slider = None
 
@@ -60,7 +61,7 @@ def plot_cross_section_color(file):
     fig = plt.figure()
     plt.title('Cross Section of Parameter Graph')
     fig.canvas.manager.set_window_title('Cross Section of Parameter Graph')
-    plt.subplots_adjust(bottom=0.25)
+    plt.subplots_adjust(bottom=0.35)
 
     ax = fig.axes[0]
     ax.set_xlabel('Yaw Offset')
@@ -94,7 +95,9 @@ def plot_cross_section_color(file):
 
         im = ax.imshow(data, interpolation='none',
                        extent=[file.min_yaw, file.max_yaw,
-                               file.min_power, file.max_power])
+                               file.min_power, file.max_power],
+                       vmin=file.get_min_value(),
+                       vmax=file.get_max_value())
         ax.set_aspect(file.get_yaw_inc() / file.get_power_inc())
         colorbar = plt.colorbar(im, ax=ax, label='Dist from Goal')
 
@@ -108,6 +111,14 @@ def plot_cross_section_color(file):
 
 
 if __name__ == '__main__':
+    high_dpi = False
+    if len(sys.argv) > 1:
+        print(sys.argv)
+        if sys.argv[1] == '1':
+            high_dpi = True
+
+    if high_dpi:
+        plt.rcParams['figure.dpi'] = 200
     file_contents = get_file_contents()
     file = File(file_contents)
 

@@ -61,8 +61,6 @@ AppLayer::AppLayer(GLFWwindow* window)
 
   terrain.addPhysics(physicsWorld, physicsCommon);
   goal.addPhysics(physicsWorld, physicsCommon);
-
-  initializeBalls(false);
 }
 
 AppLayer::~AppLayer() {}
@@ -423,10 +421,10 @@ inline void SetupImGuiStyle() {
   colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
   colors[ImGuiCol_ResizeGripActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
   colors[ImGuiCol_Tab] = ImVec4(0.11f, 0.15f, 0.17f, 1.00f);
-  colors[ImGuiCol_TabHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
-  colors[ImGuiCol_TabActive] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
+  colors[ImGuiCol_TabHovered] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+  colors[ImGuiCol_TabActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
   colors[ImGuiCol_TabUnfocused] = ImVec4(0.11f, 0.15f, 0.17f, 1.00f);
-  colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.11f, 0.15f, 0.17f, 1.00f);
+  colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
   colors[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
   colors[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
   colors[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
@@ -458,10 +456,8 @@ void pushActiveTabColors() {
 }
 
 void renderHelpMenu() {
-  ImGui::SameLine();
   static int currHelpTab = 0;
-  ImGui::SameLine();
-
+  
   bool pushedColors = false;
 
   std::map<int, std::string> tabMapping = {
@@ -490,16 +486,94 @@ void renderHelpMenu() {
   
   switch(currHelpTab) {
     case 0:
-      ImGui::Text("Overview");
+      ImGui::Spacing();
+
+      ImGui::TextWrapped("Golf Simulator allows you to hundreds of thousands of random golf shots "
+        "on randomly generated terrain");
+
+      ImGui::Spacing();
+
+      ImGui::TextWrapped("All of the simulation controls are displayed on the left. You can modify the "
+          "parameters that are shot, the number of balls shot, and the "
+          "progress through the simulation.");
+
+      ImGui::Spacing();
+
+      ImGui::TextWrapped("To change parameters such as the ball color / size or terrain / goal generation, "
+        "you can turn panels on containing those settings through the menu bar under 'Settings'. For most settings "
+        "to change, you need to either regenerate the balls (through pressing 'Init Balls') or by pushing the 'Generate' "
+          "button at the bottom of the respective settings pane.");
+
+      ImGui::Spacing();
+
+      ImGui::TextWrapped("For information on how to fly through the simulation, you can go to the 'Visualization "
+          "Controls' tab.");
+
+      ImGui::Spacing();
+
+      ImGui::TextWrapped("For information on how to run the simulation, you can go to the 'Running "
+          "Simulation' tab.");
+
+      ImGui::Spacing();
+
+      ImGui::TextWrapped("For information on how to export results for visualization, you can go to the 'Exporting "
+        "Results' tab.");
       break;
     case 1:
-      ImGui::Text("Controls");
+      ImGui::Spacing();
+
+      ImGui::TextWrapped("To swap being able to use your cursor to click on the GUI and your cursor being used to "
+        "pan around the simulation, press Escape");
+
+      ImGui::Spacing();
+
+      ImGui::TextWrapped("While in control of the simulation, you can use WASD to move back and forth at the same "
+        "height. Space is used to ascend, and Shift is used to descend.");
+
+      ImGui::Spacing();
+
+      ImGui::TextWrapped("Use the mouse wheel to change the FOV, effectively zooming in (warning: this causes "
+        "distortion, especially at extreme FOVs.");
+
       break;
     case 2:
-      ImGui::Text("Running Simulation");
+      ImGui::Spacing();
+ 
+      ImGui::TextWrapped("Running Simulation");
+      ImGui::TextWrapped("Every shot in the simulation is defined by three parameters, its power (initial velocity), "
+        "pitch (angle from horizontal), and yaw offset (angle offset from aimed directly toward the goal).");
+
+      ImGui::Spacing();
+
+      ImGui::TextWrapped("For the simulation, you specify a range for each of these three parameters as well as "
+        "the number of divisions for each parameter. For instance, if the number of divisions is set to 5, then each "
+        "parameter range is divided into 5 equally spaced value, and for each of the 5^3 = 125 combinations of parameters, "
+        "a single golf ball is launched.");
+
+      ImGui::Spacing();
+
+      ImGui::TextWrapped("After specifying these parameters, there are two options for starting the simulation: "
+        "staggered and simultaneous. For simultaneous starts, all balls are launched at the same time, which is highly "
+        "unrecommended for more than 200 balls due to performance reasons. For staggered starts, the balls are launched in "
+        "batches, and this batch size can be configured while the staggered option is selected. By default, the staggered "
+        "option is selected.");
+
       break;
     case 3:
-      ImGui::Text("Exporting Results");
+      ImGui::Spacing();
+
+      ImGui::TextWrapped("After the simulation finishes running, the 'Export Results' button shows up, "
+        "allowing you to save the results of each ball to a file.");
+
+      ImGui::Spacing();
+
+      ImGui::TextWrapped("Upon pressing the export button, a file dialog appears where you can select the folder "
+        "the results file will be saved to, as well as the name of the file.");
+
+      ImGui::Spacing();
+
+      ImGui::TextWrapped("By default, the file will be saved with the .golf extension, indicating that it is an "
+        "output of Golf Simulator.");
       break;
   }
 }
@@ -518,7 +592,7 @@ void AppLayer::imGuiRender() {
   bool showRenderMenu = false;
 
   if (showHelpPopup) {
-    if (!ImGui::Begin("Help", &showHelpPopup)) {
+    if (!ImGui::Begin("Help", &showHelpPopup, ImGuiWindowFlags_NoDocking)) {
       // blank
     }
     else {
@@ -531,14 +605,24 @@ void AppLayer::imGuiRender() {
     if (ImGui::Button("Show Help")) {
       showHelpPopup = true;
     }
-    ImGui::Checkbox("Show Sidebar", &showSidebar);
     ImGui::Separator();
-    ImGui::Checkbox("Show Time Metrics", &showTimeMetrics);
+    
+    if (ImGui::BeginMenu("Settings")) {
+      ImGui::Checkbox("Sidebar", &showSidebar);
+      ImGui::Checkbox("Ball Settings", &showBallSettings);
+      ImGui::Checkbox("Terrain Settings", &showTerrainSettings);
+      ImGui::Checkbox("Goal Settings", &showGoalSettings);
+      ImGui::EndMenu();
+    }
     ImGui::Separator();
+    
     if (ImGui::BeginMenu("Debugging")) {
+      ImGui::Checkbox("Show Extra Debugging Windows", &showDebugWindows);
       ImGui::Checkbox("Shadows", &renderShadows);
       ImGui::Checkbox("Normals", &renderNormals);
       ImGui::Checkbox("Physics Debugging", &renderPhysicsDebugging);
+      ImGui::Checkbox("Show Time Metrics", &showTimeMetrics);
+
       if (ImGui::Button("Reload Shaders")) {
         lightDepthShader.load();
         ballRenderer.reloadShader();
@@ -571,19 +655,19 @@ void AppLayer::imGuiRender() {
       }
     }
 
-    setupRedButton();
-    if (ImGui::Button("Reset Balls")) {
+    setupGreenButton();
+    if (ImGui::Button("Init Balls")) {
       initializeBalls(!initSimultaneous);
     }
     clearButtonStyle();
 
     ImGui::SameLine();
-    if (ImGui::RadioButton("Simultaneous", initSimultaneous)) {
-      initSimultaneous = true;
-    }
-    ImGui::SameLine();
     if (ImGui::RadioButton("Staggered", !initSimultaneous)) {
       initSimultaneous = false;
+    }
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Simultaneous", initSimultaneous)) {
+      initSimultaneous = true;
     }
     setupGreenButton();
     if (exportReady) {
@@ -632,7 +716,8 @@ void AppLayer::imGuiRender() {
 
       ImGui::DragInt("# Balls per Dim", &paramsNumDivisions, 0.25, 1, 100);
       ImGui::DragFloatRange2("Power", &minPower, &maxPower, 0.25f, 0.0f, 30.0);
-      ImGui::DragFloatRange2("Yaw Offset (deg)", &minYaw, &maxYaw, 1.5f, -90.0f, 90.0f);
+      ImGui::DragFloatRange2("Yaw Offset (deg)", &minYaw, &maxYaw, 1.5f, -90.0f,
+                             90.0f);
       ImGui::DragFloatRange2("Pitch (deg)", &minPitch, &maxPitch, 1.0f, 0.0f,
                              90.0f);
     } else {
@@ -642,7 +727,7 @@ void AppLayer::imGuiRender() {
         staggeredBalls.clear();
         for (Ball& ball : balls) {
           ball.removePhysics(physicsWorld, physicsCommon, ballShapeRegistry);
-        }
+        } 
         balls.clear();
       }
       clearButtonStyle();
@@ -650,38 +735,48 @@ void AppLayer::imGuiRender() {
 
     ImGui::End();
 
-    ImGui::Begin("Balls", NULL, ImGuiWindowFlags_NoMove);
-    for (int i = 0; i < balls.size(); i++) {
-      balls[i].imGuiRender(i, physicsWorld, physicsCommon, ballShapeRegistry);
-    }
-    ImGui::Begin("Add Ball");
-    ImGui::DragFloat3("Position", glm::value_ptr(addBallPosition), 1.0f, -10.0f,
-                      10.0f);
-    ImGui::DragFloat("Radius", &addBallRadius, 0.01f, 0.01f, 2.0f);
-    ImGui::ColorEdit3("Color", glm::value_ptr(addBallColor));
-    ImGui::Checkbox("Has Physics", &addBallHasPhysics);
-
-    setupGreenButton();
-    if (ImGui::Button("Add")) {
-      Ball ball = Ball(addBallPosition.x, addBallPosition.y, addBallPosition.z,
-                       addBallRadius, addBallColor);
-      if (addBallHasPhysics) {
-        ball.addPhysics(physicsWorld, physicsCommon, ballShapeRegistry);
+    if (showDebugWindows) {
+      ImGui::Begin("Balls", NULL, ImGuiWindowFlags_NoMove);
+      for (int i = 0; i < balls.size(); i++) {
+        balls[i].imGuiRender(i, physicsWorld, physicsCommon, ballShapeRegistry);
       }
-      ballsAdd.push(ball);
+      ImGui::End();
+
+      float bound = std::max(terrain.getWidth(), terrain.getHeight()) / 2;
+      ImGui::DragFloat3("New Ball Pos", glm::value_ptr(addBallPosition), 1.0f,
+                        -bound / 2, bound / 2);
+      ImGui::Checkbox("New Ball Has Physics", &addBallHasPhysics);
+
+      setupGreenButton();
+      if (ImGui::Button("Add")) {
+        Ball ball = Ball(addBallPosition.x, addBallPosition.y,
+                         addBallPosition.z, addBallRadius, addBallColor);
+        if (addBallHasPhysics) {
+          ball.addPhysics(physicsWorld, physicsCommon, ballShapeRegistry);
+        }
+        ballsAdd.push(ball);
+      }
+      clearButtonStyle();
     }
-    clearButtonStyle();
 
-    ImGui::End();
-    ImGui::End();
+    if (showBallSettings) {
+      ImGui::Begin("Ball Settings", NULL, ImGuiWindowFlags_NoMove);
+      ImGui::DragFloat("Radius", &addBallRadius, 0.01f, 0.01f, 2.0f);
+      ImGui::ColorEdit3("Color", glm::value_ptr(addBallColor));
+      ImGui::End();
+    }
 
-    ImGui::Begin("Terrain Controls", NULL, ImGuiWindowFlags_NoMove);
-    terrain.imGuiRender(goal, physicsWorld, physicsCommon);
-    ImGui::End();
+    if (showTerrainSettings) {
+      ImGui::Begin("Terrain Controls", NULL, ImGuiWindowFlags_NoMove);
+      terrain.imGuiRender(goal, physicsWorld, physicsCommon);
+      ImGui::End();
+    }
 
-    ImGui::Begin("Goal Controls", NULL, ImGuiWindowFlags_NoMove);
-    goal.imGuiRender(physicsWorld, physicsCommon, terrain);
-    ImGui::End();
+    if (showGoalSettings) {
+      ImGui::Begin("Goal Controls", NULL, ImGuiWindowFlags_NoMove);
+      goal.imGuiRender(physicsWorld, physicsCommon, terrain);
+      ImGui::End();
+    }
   }
 
   if (showTimeMetrics) {

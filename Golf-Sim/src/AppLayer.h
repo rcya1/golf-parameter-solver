@@ -50,8 +50,14 @@ class AppLayer : public GLCore::Layer {
 
   bool showHelpPopup = true;
   bool showSidebar = true;
+  
+  bool showTerrainSettings = false;
+  bool showGoalSettings = false;
+  bool showBallSettings = false;
+  bool showDebugWindows = false;
+
   bool showTimeMetrics = false;
-  bool initSimultaneous = true;
+  bool initSimultaneous = false;
   float dpiScale = 1.0;
   bool updateFont = false;
 
@@ -71,13 +77,13 @@ class AppLayer : public GLCore::Layer {
   glm::vec3 startPositionHighlightColor;
 
   const float PI = 3.14159265f;
-  int paramsNumDivisions = 6;
-  float minPower = 3.0;
-  float maxPower = 15.0;
-  float minPitch = 0.0;
+  int paramsNumDivisions = 10;
+  float minPower = 15.0;
+  float maxPower = 30.0;
+  float minPitch = 30.0;
   float maxPitch = 60.0f;
-  float minYaw = -45.0f;
-  float maxYaw = 45.0f;
+  float minYaw = -15.0f;
+  float maxYaw = 15.0f;
   int staggeredBatchSize = 150;
   std::string outputFilePath = "";
   bool exportReady = false;

@@ -32,3 +32,9 @@ class File():
 
     def get_pitch_inc(self):
         return (self.max_pitch - self.min_pitch) / (self.dim - 1)
+
+    def get_max_value(self):
+        return np.amax(self.values)
+
+    def get_min_value(self):
+        return np.amin(self.values)
