@@ -62,6 +62,7 @@ A `*` next to the version number means it was either updated or added from Chern
 | stb_image                      | 2.23    | Image loader                                                     |
 | reactphysics3d                 | 0.9.0\* | Handling 3d physics collisions                                   |
 | ImPlot                         | 0.12\*  | Addon to Dear ImGui that adds plotting functionality             |
+| ImGuiFileDialog                | 0.6.4\* | Addon to Dear ImGui that adds file system functionality          |
 | Font Awesome                   | 6.1.1\* | Font for icons                                                   |
 
 ### Params Visualizer
