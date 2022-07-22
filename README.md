@@ -71,3 +71,8 @@ Python 3.6 is required along with numpy, matplotlib, and tkinter. You can use pi
 ## Inspiration
 
 The idea for this video was originally inspired by [this YouTube video](https://www.youtube.com/watch?v=b-pLRX3L-fg) by [AlphaPhoenix](https://www.youtube.com/c/AlphaPhoenixChannel). When watching his video, I was looking for a new project and I had been dabbling with a bit of OpenGL. As a result, I was super curious to try implementing my own version of his program, but with an extra visualization (the 3D scatter plot of successes) and with a full GUI for customizing the exact parameters of the simulation.
+
+## Known Bugs
+- Goal does not generate properly when the goal size is much larger than the tile size
+
+If you find any other bugs, feel free to open a GitHub issue!
