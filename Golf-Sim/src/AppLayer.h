@@ -78,13 +78,13 @@ class AppLayer : public GLCore::Layer {
 
   const float PI = 3.14159265f;
   int paramsNumDivisions = 10;
-  float minPower = 15.0;
-  float maxPower = 30.0;
+  float minPower = 20.0;
+  float maxPower = 25.0;
   float minPitch = 30.0;
   float maxPitch = 60.0f;
   float minYaw = -15.0f;
   float maxYaw = 15.0f;
-  int staggeredBatchSize = 150;
+  int staggeredBatchSize = 250;
   std::string outputFilePath = "";
   bool exportReady = false;
   std::vector<glm::vec3> staggeredBalls;
@@ -98,7 +98,7 @@ class AppLayer : public GLCore::Layer {
   TimeMetrics timeMetrics;
 
   float physicsAccumulatedTime = 0;
-  bool physicsRunning = false;
+  bool physicsRunning = true;
   bool justStartedPhysics = true;
   reactphysics3d::PhysicsCommon physicsCommon;
   reactphysics3d::PhysicsWorld* physicsWorld;

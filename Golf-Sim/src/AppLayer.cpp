@@ -554,9 +554,9 @@ void renderHelpMenu() {
 
       ImGui::TextWrapped("After specifying these parameters, there are two options for starting the simulation: "
         "staggered and simultaneous. For simultaneous starts, all balls are launched at the same time, which is highly "
-        "unrecommended for more than 200 balls due to performance reasons. For staggered starts, the balls are launched in "
+        "unrecommended for more than ~500 balls due to performance reasons. For staggered starts, the balls are launched in "
         "batches, and this batch size can be configured while the staggered option is selected. By default, the staggered "
-        "option is selected.");
+        "option is selected. Trial and error can be used to determine which batch size is the best.");
 
       break;
     case 3:
@@ -700,7 +700,7 @@ void AppLayer::imGuiRender() {
     if (!initSimultaneous) {
       ImGui::NewLine();
 
-      ImGui::DragInt("Staggered Batch Size", &staggeredBatchSize, 5.0f, 1, 500);
+      ImGui::DragInt("Staggered Batch Size", &staggeredBatchSize, 5.0f, 1, 10000);
     }
 
     if (staggeredBalls.empty()) {
@@ -714,7 +714,7 @@ void AppLayer::imGuiRender() {
                         glm::value_ptr(startPositionHighlightColor));
       ImGui::NewLine();
 
-      ImGui::DragInt("# Balls per Dim", &paramsNumDivisions, 0.25, 1, 100);
+      ImGui::DragInt("# Balls per Dim", &paramsNumDivisions, 0.25, 1, 250);
       ImGui::DragFloatRange2("Power", &minPower, &maxPower, 0.25f, 0.0f, 30.0);
       ImGui::DragFloatRange2("Yaw Offset (deg)", &minYaw, &maxYaw, 1.5f, -90.0f,
                              90.0f);
