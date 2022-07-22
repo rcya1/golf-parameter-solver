@@ -12,14 +12,14 @@ GPS (Golf Parameter Solver) is a simulation tool that launches up to tens of tho
 After simulating golf shots, the resulting data can be analyzed visually in matplotlib using a provided script.
 
 <p float="left">
-  <img src="./docs/10.png" width="600" />
+  <img src="./docs/10.png" width="400" />
 </p>
 
 With a 3D scatter plot of the parameters for all of the shots that landed in the goal, a hyperplane emerges with all of the plots lying on a "rainbow shape" more densely distributed towards the latter end, indicating that a higher pitch led to more successes. Almost of the successes have a yaw offset in the range of 0 deg to +5 deg, indicating that aiming slightly to the left of the goal was most beneficial (which makes sense because there is a hill to the left for the golf shot to roll in).
 
 <p float="left">
-  <img src="./docs/11.png" width="600" />
-  <img src="./docs/12.png" width="600" />
+  <img src="./docs/11.png" width="400" />
+  <img src="./docs/12.png" width="400" />
 </p>
 
 With 2D colormaps of the data, we can see for a given pitch, which combinations of yaw and power led to the closest shots to the goal. In these images, the area that lands closest to the goal for each pitch generally tends to be a triangle opening upwards, indicating that for the most leeway in your golf shot, you should aim slightly to slightly overshoot your shot.
